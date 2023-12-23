@@ -1,4 +1,5 @@
 use rocket_ws::{WebSocket, Stream};
+use rocket::serde::{Deserialize, json::Json};
 
 #[get("/system_status")]
 pub fn system_status(ws: WebSocket) -> Stream!['static] {
@@ -17,39 +18,18 @@ pub fn system_status(ws: WebSocket) -> Stream!['static] {
 //   http://127.0.0.1:8000/?emoji&name=Rocketeer
 //   http://127.0.0.1:8000/?name=Rocketeer&lang=en&emoji
 //   http://127.0.0.1:8000/?lang=ru&emoji&name=Rocketeer
-#[get("/command?<lang>&<opt..>")]
-pub fn command(lang: Option<Lang>, opt: Options<'_>) -> String {
+#[post("/command", format = "application/json", data = "<command>")]
+pub fn command(command: Json<Command<'_>>) -> String {
     let mut greeting = String::new();
-    if opt.emoji {
-        greeting.push_str("👋 ");
-    }
 
-    match lang {
-        Some(Lang::Russian) => greeting.push_str("Привет"),
-        Some(Lang::English) => greeting.push_str("Hello"),
-        None => greeting.push_str("Hi"),
-    }
-
-    if let Some(name) = opt.name {
-        greeting.push_str(", ");
-        greeting.push_str(name);
-    }
-
-    greeting.push('!');
-    greeting
+    println!("{:?}", command);
+    "Command received\n".to_string()
 }
 
-#[derive(FromFormField)]
-enum Lang {
-    #[field(value = "en")]
-    English,
-    #[field(value = "ru")]
-    #[field(value = "ру")]
-    Russian
-}
-
-#[derive(FromForm)]
-struct Options<'r> {
-    emoji: bool,
-    name: Option<&'r str>,
+#[derive(Deserialize)]
+#[derive(Debug)]
+#[serde(crate = "rocket::serde")]
+struct Command<'r> {
+    description: &'r str,
+    complete: bool
 }
