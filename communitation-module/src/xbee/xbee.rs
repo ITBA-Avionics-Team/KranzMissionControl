@@ -1,17 +1,16 @@
-use std::{time::Duration, io, sync::mpsc};
+use std::{time::Duration, io, sync::{mpsc, Arc}};
 
 #[derive(Debug)]
-pub struct LCMessage<'r> {
-    raw_content: &'r str,
+pub struct LCMessage {
+    pub raw_content: Arc<String>,
 }
-
 
 
 pub fn send_command(raw_content: &str) {
   println!("Sending xbee message: {:?}", raw_content)
 }
 
-pub fn listen_for_messages(serial_port_name: &str, baud_rate: u32, rx: mpsc::Receiver<LCMessage>) {
+pub fn listen_for_messages(serial_port_name: &str, baud_rate: u32, data_sender: mpsc::Sender<LCMessage>) {
   // loop {}
 
     let port = serialport::new(serial_port_name, baud_rate)
@@ -25,7 +24,8 @@ pub fn listen_for_messages(serial_port_name: &str, baud_rate: u32, rx: mpsc::Rec
             loop {
                 match port.read(serial_buf.as_mut_slice()) {
                     Ok(t) => {
-                      let bufferMessage: String = serial_buf[..t].into_iter().map(|&u|u as char).collect();
+                      let mut bufferMessage: Arc<String> = Arc::new(serial_buf[..t].into_iter().map(|&u|u as char).collect());
+                      data_sender.send(LCMessage { raw_content: bufferMessage.clone() });
                       println!("{:?}", bufferMessage)
                     },
                     Err(ref e) if e.kind() == io::ErrorKind::TimedOut => (),
