@@ -1,7 +1,12 @@
 use std::{time::{Duration, self}, thread};
 
+
+const OBEC_STATUS_MESSAGE: &[u8] = b"001414.125.24.12)|";
+
+const SYSTEM_STATUS_MESSAGE: &[u8] = b"STBY001410.125.200144.124.20?008|";
+
 fn main() {
-    let write_port_name = "/dev/ttys003"; // Replace with the correct port
+    let write_port_name = "/dev/ttys007"; // Replace with the correct port
     // let read_port_name = "/dev/ttys01";  // Replace with the correct port
     let baud_rate = 0;
 
@@ -18,9 +23,8 @@ fn main() {
     //     .expect("Failed to open read port");
 
 
-    let buff: [u8; 28] = [b'0', b'0', b'1', b'4', b'1', b'0', b'.', b'1', b'2', b'5', b'.', b'2', b'0', b'0', b'1', b'4', b'4', b'.', b'1', b'2', b'4', b'.', b'2', b'0', b'?', b'0', b'0', b'8'];
     loop {
-        write_port.write_all(&buff);
+        write_port.write_all(&SYSTEM_STATUS_MESSAGE);
         let one_second = time::Duration::from_millis(1000);
         thread::sleep(one_second);
     }

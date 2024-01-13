@@ -1,24 +1,39 @@
-#[macro_use] extern crate rocket;
+#[macro_use]
+extern crate rocket;
 mod controller;
 mod xbee;
 
-use std::sync::{mpsc, Arc};
+use std::{
+    borrow::{Borrow, BorrowMut},
+    sync::{Arc, Mutex},
+};
+use tokio::sync::{broadcast::{self, Receiver, Sender}};
 
-use rocket::futures::lock::Mutex;
-use xbee::xbee::{listen_for_messages, LCMessage};
+use rocket::{Build, Rocket};
+use xbee::xbee::{listen_for_messages, SystemState};
 
 struct AppState {
-    xbee_data_receiver: Arc<Mutex<mpsc::Receiver<LCMessage>>>,
+    system_status_broadcast: Arc<Sender<Arc<SystemState>>>,
 }
 
 #[launch]
-fn rocket() -> _ {
-    let (xbee_data_tx, xbee_data_rx) = mpsc::channel();
-    let xbee_data_receiver = Arc::new(Mutex::new(xbee_data_rx));
+#[tokio::main]
+async fn rocket() -> _ {
+    let (sender, _) = broadcast::channel::<Arc<SystemState>>(10);
+    // let system_status_broadcast = sender.subscribe();
+    let system_status_broadcast_sender = Arc::new(sender);
+    let sender_clone = Arc::clone(&system_status_broadcast_sender);
     
-    std::thread::spawn(|| listen_for_messages("/dev/ttys004", 0, xbee_data_tx));
-
+    tokio::spawn(async move { listen_for_messages("/dev/ttys008", 0, Arc::clone(&system_status_broadcast_sender)) });
     rocket::build()
-        .manage(AppState { xbee_data_receiver })
-        .mount("/", routes![controller::controller::command_lc, controller::controller::system_status])
+        .manage(AppState {
+            system_status_broadcast: sender_clone,
+        })
+        .mount(
+            "/",
+            routes![
+                controller::controller::command_lc,
+                controller::controller::system_status
+            ],
+        )
 }

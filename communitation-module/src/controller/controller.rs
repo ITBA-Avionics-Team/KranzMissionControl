@@ -1,28 +1,27 @@
-use std::borrow::Borrow;
+use std::{borrow::Borrow, sync::Arc};
 
-use rocket_ws::{WebSocket, Channel};
-use rocket::{serde::{Deserialize, json::Json}, futures::SinkExt};
+use rocket_ws::{WebSocket, Channel, Message};
+use rocket::{serde::{Deserialize, json::Json}, futures::SinkExt, response::status};
 
 use crate::{AppState, xbee};
 
 #[get("/system_status")]
 pub fn system_status(state: &rocket::State<AppState>, ws: WebSocket) -> Channel<'_> {
     println!("Opened new websocket connection, creating tokio thread for xbee messages");
+    let mut status_broadcast_clone = state.system_status_broadcast.subscribe();
     ws.channel(move |mut stream| Box::pin(async move {
         println!("Opened ws channel, spawning tokio thread");
-        let xbee_receiver = state.xbee_data_receiver.clone();
+        loop {
+            let message = {
+                // let mut guard = status_broadcast_clone.lock().unwrap();
+                status_broadcast_clone.recv().await
+            };
 
-        // Spawn a new async task to handle incoming messages from xbee_receiver
-        tokio::spawn(async move {
-            println!("Spawned tokio thread");
-
-            // Receive messages from xbee_receiver and send them to WebSocket
-            let xbee_receiver_mut = xbee_receiver.lock().await;
-            while let Ok(message) = xbee_receiver_mut.recv(){
-                let raw_content = message.raw_content.to_string();
-                let _ = stream.send(rocket_ws::Message::Text(raw_content)).await;
+            if let Ok(message) = message {
+                let system_state = message.as_ref();
+                let _ = stream.send(Message::from(serde_json::to_string(system_state).unwrap())).await;
             }
-        });
+        }
         Ok(())
     }))
 }
