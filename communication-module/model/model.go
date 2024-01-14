@@ -85,3 +85,7 @@ type Command struct {
 	state        LCState
 	bool_value   bool
 }
+
+func (command *Command) ToMessage() []byte {
+	return []byte("SSABRT") // TODO: Implement
+}

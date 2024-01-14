@@ -5,10 +5,14 @@ import (
 	"fmt"
 	"kranz/communication-module/broadcast"
 	"kranz/communication-module/model"
+	"kranz/communication-module/serial"
 	"log"
+	"net/http"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	extSerial "go.bug.st/serial" // TODO: find a prettier way to do this
 )
 
 var wsUpgrader = websocket.Upgrader{
@@ -16,13 +20,14 @@ var wsUpgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func NewCommunicationModuleRouter(systemStatusBroadcast broadcast.Broadcast[model.SystemStatus]) *gin.Engine {
+func NewCommunicationModuleRouter(systemStatusBroadcast broadcast.Broadcast[model.SystemStatus], serialPort extSerial.Port, serialPortMutex *sync.Mutex) *gin.Engine {
 	router := gin.Default()
-	router.GET("/system_status", SystemStatusHandler(systemStatusBroadcast, wsUpgrader))
+	router.GET("/system_status", GetSystemStatusHandler(systemStatusBroadcast, wsUpgrader))
+	router.POST("/command", GetCommandHandler(serialPort, serialPortMutex))
 	return router
 }
 
-func SystemStatusHandler(systemStatusBroadcast broadcast.Broadcast[model.SystemStatus], wsUpgrader websocket.Upgrader) gin.HandlerFunc{
+func GetSystemStatusHandler(systemStatusBroadcast broadcast.Broadcast[model.SystemStatus], wsUpgrader websocket.Upgrader) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		conn, err := wsUpgrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {
@@ -33,7 +38,7 @@ func SystemStatusHandler(systemStatusBroadcast broadcast.Broadcast[model.SystemS
 		defer systemStatusBroadcast.Unubscribe(systemStatusSubscriptionId)
 		for {
 			select {
-			case systemStatusMessage := <- systemStatusSubscription:
+			case systemStatusMessage := <-systemStatusSubscription:
 				fmt.Printf("[Controller] Sending message: %+v\n", systemStatusMessage)
 				jsonData, err := json.Marshal(systemStatusMessage)
 				if err != nil {
@@ -41,10 +46,31 @@ func SystemStatusHandler(systemStatusBroadcast broadcast.Broadcast[model.SystemS
 				}
 				if err := conn.WriteMessage(websocket.TextMessage, jsonData); err != nil {
 					log.Printf("WebSocket write error: %v", err)
-					return 
-			}
+					return
+				}
 				break
 			}
 		}
+	}
+}
+
+func GetCommandHandler(serialPort extSerial.Port, mutex *sync.Mutex) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var command model.Command
+
+		// Bind the received JSON to newUser.
+		if err := c.ShouldBindJSON(&command); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Process the newUser data (e.g., save to database, etc.)
+		serial.SendCommand(serialPort, mutex, command)
+
+		// Send a response
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Command sent to LC",
+			"command": command,
+		})
 	}
 }

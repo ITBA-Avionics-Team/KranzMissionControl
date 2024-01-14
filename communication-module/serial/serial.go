@@ -8,11 +8,13 @@ import (
 	"kranz/communication-module/model"
 	"log"
 	"strconv"
+	"sync"
 
 	"go.bug.st/serial"
 )
 
-func ListenForMessages(serialPort string, systemStatusBroadcast *broadcast.Broadcast[model.SystemStatus]) {
+
+func OpenSerialConnection(serialPort string) (serial.Port, sync.Mutex, error){
 	// Configuration for the serial port
 	mode := &serial.Mode{
 		BaudRate: 9600,
@@ -21,23 +23,31 @@ func ListenForMessages(serialPort string, systemStatusBroadcast *broadcast.Broad
 		StopBits: serial.OneStopBit,
 	}
 
+	mutex := sync.Mutex{};
+
 	// Open the serial port (adjust "/dev/ttyUSB0" to your port)
 	port, err := serial.Open(serialPort, mode)
 	if err != nil {
 		log.Fatalf("serial.Open: %v", err)
+		return nil, mutex, errors.New(fmt.Sprintf("Failed to open serial port: %v", err))
 	}
-	defer port.Close()
+	return port, mutex, nil
+}
 
+
+func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroadcast *broadcast.Broadcast[model.SystemStatus]) {
 	// Buffer to store incoming data
 	buf := make([]byte, 128)
 
 	// Read from the port in a loop
 	for {
+		portMutex.Lock()
 		n, err := port.Read(buf)
 		if err != nil {
 			if err != io.EOF {
 				log.Fatalf("port.Read: %v", err)
 			}
+			portMutex.Unlock()
 			break
 		}
 		// Process the incoming data
@@ -48,7 +58,14 @@ func ListenForMessages(serialPort string, systemStatusBroadcast *broadcast.Broad
 			fmt.Printf("Failed to parse system status :(");
 		}
 		systemStatusBroadcast.SendBroadcast(parsed_status)
+		portMutex.Unlock()
 	}
+}
+
+func SendCommand(port serial.Port, portMutex *sync.Mutex, command model.Command) {
+	portMutex.Lock()
+	port.Write(command.ToMessage())
+	portMutex.Unlock()
 }
 
 func ParseSystemStatus(message string) (model.SystemStatus, error) {
@@ -171,3 +188,54 @@ func ParseLCState(str string) (model.LCState, error) {
 		return model.STANDBY, errors.New("LCState string does not match any state: " + str)
 	}
 }
+
+
+
+
+// String get_4_byte_string_from_valve(Valve valve)
+// {
+//   switch (valve)
+//   {
+//   case TANK_DEPRESS_VENT_VALVE:
+//     return "TDVV";
+//   case ENGINE_VALVE:
+//     return "ENGV";
+//   case LOADING_VALVE:
+//     return "LDGV";
+//   case LOADING_LINE_DEPRESS_VENT_VALVE:
+//     return "LDVV";
+//   }
+// }
+
+
+// static String to_message(Command command)
+//   {
+//     switch (command.type)
+//     {
+//     case ValveCommand:
+//       switch (command.valve)
+//       {
+//       case TANK_DEPRESS_VENT_VALVE:
+//         return String("VCTDVV") + String((char)command.uint_value, 1) + String("|");
+//         break;
+//       case ENGINE_VALVE:
+//         return String("VCENGV") + String((char)command.uint_value, 1) + String("|");
+//         break;
+//       case LOADING_VALVE:
+//         return String("VCLDGV") + String((char)command.uint_value, 1) + String("|");
+//         break;
+//       case LOADING_LINE_DEPRESS_VENT_VALVE:
+//         return String("VCLDVV") + String((char)command.uint_value, 1) + String("|");
+//         break;
+//       }
+//       break;
+//     case SwitchStateCommand:
+//       return String("SS") + get_4_byte_string_from_state(command.state) + String("|");
+//       break;
+//     case SetExternalVentAsDefaultCommand:
+//       return String("EV") + command.bool_value ? String("1") : String("0") + String("|");
+//       break;
+//     case EMPTY:
+//       break;
+//     }
+//   }
