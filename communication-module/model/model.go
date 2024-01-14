@@ -1,5 +1,8 @@
 package model
 
+/*
+SYSTEM STATUS MODELS
+*/
 type FlightComputersStatus struct {
 	AltiumOK bool `json:"altium_ok"`
 	AdaOK    bool `json:"ada_ok"`
@@ -52,4 +55,33 @@ type SystemStatus struct {
 	OnBoard     OnBoardSystemStatus   `json:"on_board"`
 	Launchpad   LaunchpadSystemStatus `json:"launchpad"`
 	WeatherData WeatherData           `json:"weather_data"`
+}
+
+/*
+COMMAND MODELS
+*/
+type CommandType string
+
+const (
+	VALVE_COMMAND                        CommandType = "VALVE_COMMAND"
+	SWITCH_STATE_COMMAND                 CommandType = "SWITCH_STATE_COMMAND"
+	SET_EXTERNAL_VENT_AS_DEFAULT_COMMAND CommandType = "SET_EXTERNAL_VENT_AS_DEFAULT_COMMAND"
+	EMPTY_COMMAND                        CommandType = "EMPTY_COMMAND"
+)
+
+type Valve string
+
+const (
+	TANK_DEPRESS_VENT_VALVE         Valve = "TANK_DEPRESS_VENT_VALVE"
+	ENGINE_VALVE                    Valve = "ENGINE_VALVE"
+	LOADING_VALVE                   Valve = "LOADING_VALVE"
+	LOADING_LINE_DEPRESS_VENT_VALVE Valve = "LOADING_LINE_DEPRESS_VENT_VALVE"
+)
+
+type Command struct {
+	command_type CommandType
+	uint_value   uint
+	valve        Valve
+	state        LCState
+	bool_value   bool
 }
