@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"kranz/communication-module/broadcast"
 	"log"
 	"strconv"
 
@@ -19,8 +20,8 @@ var upgrader = websocket.Upgrader{
 }
 
 func main() {
-	systemStatusChannel := make(chan SystemStatus)
-	go listen_for_messages(systemStatusChannel)
+	systemStatusBroadcast := broadcast.NewBroadcast[SystemStatus]()
+	go listen_for_messages(systemStatusBroadcast)
 	router := gin.Default()
 	router.GET("/system_status", func(c *gin.Context) {
 		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
@@ -28,15 +29,20 @@ func main() {
 			return
 		}
 		defer conn.Close()
+		systemStatusSubscriptionId, systemStatusSubscription := systemStatusBroadcast.Subscribe()
+		defer systemStatusBroadcast.Unubscribe(systemStatusSubscriptionId)
 		for {
 			select {
-			case systemStatusMessage := <- systemStatusChannel:
+			case systemStatusMessage := <- systemStatusSubscription:
 				fmt.Printf("[Controller] Sending message: %+v\n", systemStatusMessage)
 				jsonData, err := json.Marshal(systemStatusMessage)
 				if err != nil {
 					log.Fatalf("Error marshaling to JSON: %v", err)
 				}
-				conn.WriteMessage(websocket.TextMessage, jsonData)
+				if err := conn.WriteMessage(websocket.TextMessage, jsonData); err != nil {
+					log.Printf("WebSocket write error: %v", err)
+					return 
+			}
 				break
 			}
 		}
@@ -44,7 +50,7 @@ func main() {
 	router.Run(":8080")
 }
 
-func listen_for_messages(systemStatusChannel chan SystemStatus) {
+func listen_for_messages(systemStatusBroadcast *broadcast.Broadcast[SystemStatus]) {
 	// Configuration for the serial port
 	mode := &serial.Mode{
 		BaudRate: 9600,
@@ -79,7 +85,7 @@ func listen_for_messages(systemStatusChannel chan SystemStatus) {
 		if err != nil {
 			fmt.Printf("Failed to parse system status :(");
 		}
-		systemStatusChannel <- parsed_status
+		systemStatusBroadcast.SendBroadcast(parsed_status)
 	}
 }
 

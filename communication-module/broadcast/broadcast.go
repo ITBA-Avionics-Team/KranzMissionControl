@@ -1,9 +1,20 @@
-package main
+package broadcast
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
+
+// TODO: Implement this with a mutex to prevent race conditions
 type Broadcast[T any] struct {
 	subscribers map[int]chan T
 	nextId int
+}
+
+func NewBroadcast[T any]() *Broadcast[T] {
+	return &Broadcast[T]{
+		subscribers: make(map[int]chan T),
+	}
 }
 
 func(broadcast * Broadcast[T]) Subscribe() (id int, subscription chan T){
@@ -19,6 +30,7 @@ func(broadcast * Broadcast[T]) Unubscribe(subscriptionId int) (err error){
 	if ok {
 		close(ch)
 		delete(broadcast.subscribers, subscriptionId)
+		fmt.Println("Unsubscribing....")
 		return nil
 	} else {
 		return errors.New("No subscription found for given id " + string(subscriptionId))
