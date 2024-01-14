@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log"
 	"strconv"
 
+	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"go.bug.st/serial"
 )
@@ -17,26 +19,29 @@ var upgrader = websocket.Upgrader{
 }
 
 func main() {
-	// router := gin.Default()
-	// router.GET("/ws", func(c *gin.Context) {
-	// 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
-	// 	if err != nil {
-	// 		return
-	// 	}
-	// 	defer conn.Close()
-	// 	i := 0
-	// 	for {
-	// 		i++
-	// 		conn.WriteMessage(websocket.TextMessage, []byte("New message (#"+strconv.Itoa(i)+")"))
-	// 		time.Sleep(time.Second)
-	// 	}
-	// })
-	// router.Run(":8080")
 	systemStatusChannel := make(chan SystemStatus)
 	go listen_for_messages(systemStatusChannel)
-
-	for{}
-
+	router := gin.Default()
+	router.GET("/system_status", func(c *gin.Context) {
+		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+		if err != nil {
+			return
+		}
+		defer conn.Close()
+		for {
+			select {
+			case systemStatusMessage := <- systemStatusChannel:
+				fmt.Printf("[Controller] Sending message: %+v\n", systemStatusMessage)
+				jsonData, err := json.Marshal(systemStatusMessage)
+				if err != nil {
+					log.Fatalf("Error marshaling to JSON: %v", err)
+				}
+				conn.WriteMessage(websocket.TextMessage, jsonData)
+				break
+			}
+		}
+	})
+	router.Run(":8080")
 }
 
 func listen_for_messages(systemStatusChannel chan SystemStatus) {
@@ -74,7 +79,7 @@ func listen_for_messages(systemStatusChannel chan SystemStatus) {
 		if err != nil {
 			fmt.Printf("Failed to parse system status :(");
 		}
-		// systemStatusChannel <- parsed_status
+		systemStatusChannel <- parsed_status
 	}
 }
 
