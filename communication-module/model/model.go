@@ -110,7 +110,7 @@ const (
 )
 
 type Command struct {
-	CommandType CommandType `json:"command_type"`
+	CommandType CommandType `json:"command_type" binding:"required"`
 	UintValue   uint        `json:"uint_value"`
 	Valve       Valve       `json:"valve"`
 	State       LCState     `json:"state"`
