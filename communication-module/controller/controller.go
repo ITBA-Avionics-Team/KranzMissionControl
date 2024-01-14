@@ -65,6 +65,7 @@ func GetCommandHandler(serialPort extSerial.Port, mutex *sync.Mutex) gin.Handler
 		}
 
 		// Process the newUser data (e.g., save to database, etc.)
+		fmt.Printf("Received command: %v", command)
 		serial.SendCommand(serialPort, mutex, command)
 
 		// Send a response

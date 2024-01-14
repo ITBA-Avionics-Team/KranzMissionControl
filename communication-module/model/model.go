@@ -1,5 +1,7 @@
 package model
 
+import "fmt"
+
 /*
 SYSTEM STATUS MODELS
 */
@@ -34,6 +36,35 @@ const (
 	IGNITION_IGNITERS_OFF                  LCState = "IGNITION_IGNITERS_OFF"
 	ABORT                                  LCState = "ABORT"
 )
+
+func Get4ByteStringFromState(state LCState) string {
+  switch state {
+  case STANDBY:
+    return "STBY";
+  case STANDBY_PRESSURE_WARNING:
+    return "STPW";
+  case STANDBY_PRESSURE_WARNING_EXTERNAL_VENT:
+    return "STPE";
+  case LOADING:
+    return "LDNG";
+  case PRE_FLIGHT_CHECK:
+    return "PRFC";
+  case PRE_LAUNCH_WIND_CHECK:
+    return "PRLW";
+  case PRE_LAUNCH_UMBRILICAL_DISCONNECT:
+    return "PRLU";
+  case IGNITION_IGNITERS_ON:
+    return "IGON";
+  case IGNITION_OPEN_VALVE:
+    return "IGVO";
+  case IGNITION_IGNITERS_OFF:
+    return "IGOF";
+  case ABORT:
+    return "ABRT";
+  }
+	return ""
+}
+
 
 type LaunchpadSystemStatus struct {
 	CurrentState                LCState `json:"current_state`
@@ -79,13 +110,35 @@ const (
 )
 
 type Command struct {
-	command_type CommandType
-	uint_value   uint
-	valve        Valve
-	state        LCState
-	bool_value   bool
+	CommandType CommandType `json:"command_type"`
+	UintValue   uint        `json:"uint_value"`
+	Valve       Valve       `json:"valve"`
+	State       LCState     `json:"state"`
+	BoolValue   bool        `json:"bool_value"`
 }
 
-func (command *Command) ToMessage() []byte {
-	return []byte("SSABRT") // TODO: Implement
+func (command *Command)ToMessage() []byte {
+	switch command.CommandType {
+	case VALVE_COMMAND:
+		switch command.Valve {
+		case TANK_DEPRESS_VENT_VALVE:
+			return []byte(fmt.Sprintf("VCTDVV%c|", command.UintValue))
+		case ENGINE_VALVE:
+			return []byte(fmt.Sprintf("VCENGV%c|", command.UintValue))
+		case LOADING_VALVE:
+			return []byte(fmt.Sprintf("VCLDGV%c|", command.UintValue))
+		case LOADING_LINE_DEPRESS_VENT_VALVE:
+			return []byte(fmt.Sprintf("VCLDVV%c|", command.UintValue))
+		}
+	case SWITCH_STATE_COMMAND:
+		return []byte("SS" + Get4ByteStringFromState(command.State) + "|")
+	case SET_EXTERNAL_VENT_AS_DEFAULT_COMMAND:
+		if command.BoolValue {
+			return []byte("EV1|")
+		}
+		return []byte("EV0|")
+	case EMPTY_COMMAND:
+		// Do nothing for EMPTY
+	}
+	return []byte{}
 }
