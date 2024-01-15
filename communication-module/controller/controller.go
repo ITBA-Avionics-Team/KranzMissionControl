@@ -47,8 +47,8 @@ func GetSystemStatusHandler(systemStatusBroadcast broadcast.Broadcast[model.Syst
 		for {
 			select {
 			case systemStatusMessage := <-systemStatusSubscription:
-				fmt.Printf("[Controller] Sending message: %+v\n", systemStatusMessage)
 				jsonData, err := json.Marshal(systemStatusMessage)
+				fmt.Printf("[Controller] Sending message: %s\n", jsonData)
 				if err != nil {
 					log.Fatalf("Error marshaling to JSON: %v", err)
 				}
