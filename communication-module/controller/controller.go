@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"sync"
 
+	"slices"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	extSerial "go.bug.st/serial" // TODO: find a prettier way to do this
@@ -18,12 +20,17 @@ import (
 var wsUpgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		acceptedOrigins := []string{"http://localhost:5173"}
+		return slices.Contains(acceptedOrigins, r.Header.Get("Origin"))
+	},
 }
 
 func NewCommunicationModuleRouter(systemStatusBroadcast broadcast.Broadcast[model.SystemStatus], serialPort extSerial.Port, serialPortMutex *sync.Mutex) *gin.Engine {
 	router := gin.Default()
 	router.GET("/system_status", GetSystemStatusHandler(systemStatusBroadcast, wsUpgrader))
 	router.POST("/command", GetCommandHandler(serialPort, serialPortMutex))
+  // router.Use(cors.Default())
 	return router
 }
 
@@ -31,6 +38,7 @@ func GetSystemStatusHandler(systemStatusBroadcast broadcast.Broadcast[model.Syst
 	return func(c *gin.Context) {
 		conn, err := wsUpgrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {
+			fmt.Printf("%v", err)
 			return
 		}
 		defer conn.Close()
