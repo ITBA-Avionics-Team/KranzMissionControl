@@ -32,8 +32,38 @@ interface WeatherData {
   wind_speed_knt: number;
 }
 
-interface SystemStatus {
+export interface SystemStatus {
   on_board: OnBoardSystemStatus;
   launchpad: LaunchpadSystemStatus;
   weather_data: WeatherData;
+}
+
+export const DefaultSystemStatus: SystemStatus = {
+  on_board: {
+    connection_status: "",
+    tank_pressure_psi: 0,
+    tank_temp_celsius: 0,
+    tank_depress_vent_temp_celsius: 0,
+    tank_depress_vent_valve_open: false,
+    engine_valve_open: false,
+    obec_battery_voltage_volt: 0,
+    flight_computers_status: {
+      altium_ok: false,
+      ada_ok: false,
+    },
+  },
+  launchpad: {
+    current_state: 'STANDBY',
+    connection_status: "",
+    load_line_pressure_psi: 0,
+    loading_valve_open: false,
+    loading_depress_vent_valve_open: false,
+    umbrilical_connected: false,
+    igniter_continuity_ok: false,
+    external_vent_as_default: false,
+    lc_battery_voltage_volt: 0,
+  },
+  weather_data: {
+    wind_speed_knt: 0,
+  },
 }
