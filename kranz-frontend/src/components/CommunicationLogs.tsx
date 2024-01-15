@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from 'react';
 
+{
+
+}
+
 const CommunicationLogs = () => {
-  const [messages, setMessages] = useState([]);
+  const [latestSystemStatus, setLatestSystemStatus] = useState();
 
   useEffect(() => {
     const ws = new WebSocket('ws://127.0.0.1:8080/system_status');
 
     ws.onmessage = (event) => {
-      setMessages((prevMessages) => [...prevMessages, event.data]);
+      setLatestSystemStatus((previousSystemStatus) => {
+        return JSON.parse(event.data)
+      });
     };
 
     ws.onerror = (error) => {
@@ -21,9 +27,7 @@ const CommunicationLogs = () => {
 
   return (
     <div>
-      {messages.map((message, index) => (
-        <p key={index}>{message}</p>
-      ))}
+      {latestSystemStatus?.launchpad?.current_state}
     </div>
   );
 };
