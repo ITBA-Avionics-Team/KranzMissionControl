@@ -75,15 +75,16 @@ func ParseSystemStatus(message string) (model.SystemStatus, error) {
 	}
 
 	sensorDataByte := message[28]
+	// fmt.Printf("Char %c", sensorDataByte)
 
-	// obecConnectionOK := sensorDataByte&0b01 == 1
-	tankDepressVentValveOpen := sensorDataByte&0b10 == 1
-	engineValveOpen := sensorDataByte&0b100 == 1
-	loadingValveOpen := sensorDataByte&0b1000 == 1
-	loadingDepressVentValveOpen := sensorDataByte&0b10000 == 1
-	umbrilicalConnected := sensorDataByte&0b100000 == 1
-	igniterContinuityOK := sensorDataByte&0b1000000 == 1
-	externalVentAsDefault := sensorDataByte&0b10000000 == 1
+	// obecConnectionOK := sensorDataByte&0b01 != 0
+	tankDepressVentValveOpen := sensorDataByte&0b10 != 0
+	engineValveOpen := sensorDataByte&0b100 != 0
+	loadingValveOpen := sensorDataByte&0b1000 != 0
+	loadingDepressVentValveOpen := sensorDataByte&0b10000 != 0
+	umbrilicalConnected := sensorDataByte&0b100000 != 0
+	igniterContinuityOK := sensorDataByte&0b1000000 != 0
+	externalVentAsDefault := sensorDataByte&0b10000000 != 0
 
 	parseF32 := func(s string) (float32, error) {
 		val, err := strconv.ParseFloat(s, 32)
