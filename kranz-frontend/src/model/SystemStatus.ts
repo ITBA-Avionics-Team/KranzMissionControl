@@ -46,7 +46,7 @@ export const DefaultSystemStatus: SystemStatus = {
     tank_pressure_psi: 14,
     tank_temp_celsius: 26,
     tank_depress_vent_temp_celsius: 10,
-    tank_depress_vent_valve_open: false,
+    tank_depress_vent_valve_open: true,
     engine_valve_open: false,
     obec_battery_voltage_volt: 0,
     combustion_chamber_pressure_psi: 20,

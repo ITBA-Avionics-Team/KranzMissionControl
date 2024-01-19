@@ -2,7 +2,7 @@ import React from 'react';
 
 const Valve = ({ name, coords, status, onClick, onMouseMove, onMouseEnter, onMouseLeave }) => {
   // Define the valve's appearance based on its state (open or closed)
-  const valveColor = status ? 'green' : 'red';
+  const valveColor = status ? 'limegreen' : 'red';
 
 	const xPercentage = coords.x; // 20% from the left edge
   const yPercentage = coords.y; // 30% from the top edge
