@@ -5,6 +5,7 @@ const FloatingText = ({cursorPos, text}) => {
   return (
       <div
         style={{
+          color: 'var(--main-fg-color)',
           position: 'absolute',
           left: cursorPos.x,
           top: cursorPos.y,

@@ -1,16 +1,45 @@
-const StatusBar = (systemStatus) => {
+const StatusBar = ({systemStatus}) => {
+
+  // console.log(systemStatus)
 
   const statusBarStyle = {
     width: '100vw',
     height: '5rem',
-    backgroundColor: 'grey'
+    backgroundColor: 'var(--main-bg-color)',
+    color: 'var(--main-fg-color)',
+
+    borderColor: 'var(--main-fg-color)',
+    borderTopStyle: 'solid',
+    borderWidth: '1px',
+
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+
+    // padding: '0 2rem'
+  }
+
+  const statusBarElemStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    margin: '0 3rem'
   }
 
   return (
     <div style={statusBarStyle}>
-      <h3>On Board Engine Computer</h3>
-      <div>Tank depress vent valve open: {systemStatus?.on_board?.tank_depress_vent_valve_open ? "True" : "False"}</div>
-      <div>Engine valve open: {systemStatus?.on_board?.engine_valve_open  ? "True" : "False"}</div>
+      <div style={statusBarElemStyle}>
+        <div><b>LC State:</b> {systemStatus.launchpad.current_state}</div>
+        <div><b>LC Connection status:</b> {systemStatus.launchpad.connection_status}</div>
+      </div>
+      <div style={statusBarElemStyle}>
+        {/* <div><b>OBEC State:</b> {systemStatus.on_board?.current_state}</div> */}
+        <div><b>OBEC Connection status:</b> {systemStatus.on_board?.connection_status}</div>
+      </div>
+
+      <div style={statusBarElemStyle}>
+        <div><b>Default venting mode:</b> {systemStatus.launchpad?.external_vent_as_default ? "EXTERNAL" : "INTERNAL"}</div>
+      </div>
+
     </div>
   );
 };

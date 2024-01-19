@@ -7,8 +7,7 @@ const TemperatureSensor = ({ name, coords, onMouseEnter, onMouseLeave }) => {
 
   // Style for the valve
   const sensorStyle = {
-    fill: 'grey',
-    stroke: 'black',
+    fill: 'var(--main-fg-color)',
     strokeWidth: 2,
 
 		position: 'absolute',

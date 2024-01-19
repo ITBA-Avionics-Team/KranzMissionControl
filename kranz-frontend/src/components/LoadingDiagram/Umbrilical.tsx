@@ -3,8 +3,7 @@ import React from 'react';
 const Umbrilical = ({ name, coords, state, onClick, onMouseEnter, onMouseLeave }) => {
   // Style for the valve
   const valveStyle = {
-    fill: 'grey',
-    stroke: 'black',
+    fill: 'var(--main-fg-color)',
     strokeWidth: 2,
     cursor: 'pointer',
 

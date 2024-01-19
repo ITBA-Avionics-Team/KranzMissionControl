@@ -15,7 +15,7 @@ function App() {
       <SystemStatusProvider>
         <Navbar />
         <SystemVisualizer />
-        <CommunicationLogs />
+        {/* <CommunicationLogs /> */}
       </SystemStatusProvider>
     </div>
   )
