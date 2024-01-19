@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { SystemStatusContext } from "../contexts/SystemStatusContext";
+import { DefaultSystemStatus } from "../model/SystemStatus";
 
 export const SystemStatusProvider = ({ children }) => {
-  const [latestSystemStatus, setLatestSystemStatus] = useState({});
+  const [latestSystemStatus, setLatestSystemStatus] = useState(DefaultSystemStatus);
+
 
   useEffect(() => {
     const ws = new WebSocket('ws://127.0.0.1:8080/system_status');
