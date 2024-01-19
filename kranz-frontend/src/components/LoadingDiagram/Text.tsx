@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Text = ({ value, coords }) => {
+const Text = ({ value, coords, fontSize }) => {
 
 	const xPercentage = coords.x; 
   const yPercentage = coords.y; 
