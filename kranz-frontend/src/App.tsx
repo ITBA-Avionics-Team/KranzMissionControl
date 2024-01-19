@@ -5,19 +5,19 @@ import './App.css'
 import CommunicationLogs from './components/CommunicationLogs'
 import { SystemStatusProvider } from './providers/SystemStatusProvider'
 import SystemVisualizer from './components/SystemVisualizer'
+import FloatingText from './components/FloatingText'
+import Navbar from './components/Navbar'
 
 function App() {
+  
   return (
-    <>
+    <div style={{ height: '100vh', width: '100vw' , display:'flex', flexDirection: 'column'}}>
       <SystemStatusProvider>
-        <h1>Kranz Mission Control 🚀</h1>
-        <p className="read-the-docs">
-          Click on the Vite and React logos to learn more
-        </p>
+        <Navbar />
         <SystemVisualizer />
         <CommunicationLogs />
       </SystemStatusProvider>
-    </>
+    </div>
   )
 }
 

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Umbrilical = ({ name, coords, state, onClick, onHover }) => {
+const Umbrilical = ({ name, coords, state, onClick, onMouseEnter, onMouseLeave }) => {
   const valveColor = state === 'open' ? 'green' : 'red';
 
 	const xPercentage = coords.x; // 20% from the left edge
@@ -19,8 +19,8 @@ const Umbrilical = ({ name, coords, state, onClick, onHover }) => {
   };
 
   return (
-    <svg style={valveStyle} >
-      <circle cx="50" cy="50" r="40" onClick={() => onClick(name)} onHover={() => onHover(name)}/>
+    <svg style={valveStyle} onClick={() => onClick(name)} onMouseEnter={() => onMouseEnter(name)} onMouseLeave={() => onMouseLeave(name)}>
+      <circle cx="50" cy="50" r="40"/>
     </svg>
   );
 };
