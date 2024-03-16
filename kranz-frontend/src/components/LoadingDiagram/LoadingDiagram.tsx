@@ -87,8 +87,9 @@ const LoadingDiagram = ({ systemStatus }) => {
 			<HorizontalLine coords={{x:30.5, y:38}} dimensions={{x: 7, y: 9}}/>
 			<HorizontalLine coords={{x:40, y:38}} dimensions={{x: 4, y: 9}}/>
 			<VerticalLine coords={{x:33, y:39.4}} dimensions={{x: 1, y: 5}}/>
-			<Valve name="loading_valve" coords={{x:38, y:38}} status={systemStatus.launchpad.loading_valve_open} onClick={openValveCommandDialog} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/>
-			<Valve name="loading_depress_vent_valve" coords={{x:33, y:45}} status={systemStatus.launchpad.loading_depress_vent_valve_opem} onClick={openValveCommandDialog} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/>
+			<Valve name="loading_valve" coords={{x:38, y:37}} status={systemStatus.launchpad.loading_valve_open} onClick={openValveCommandDialog} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/>
+			<Valve name="loading_depress_vent_valve" coords={{x:32.31, y:45}} status={systemStatus.launchpad.loading_depress_vent_valve_opem} onClick={openValveCommandDialog} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/>
+			<Tank coords={{x:46, y:38}} dimensions={{x: 5, y: 20}} darkMode="true"/>
     </div>
   );
 };

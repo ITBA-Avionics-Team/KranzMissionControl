@@ -1,0 +1,11 @@
+.system-visualizer {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.system-visualizer-content {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+}
