@@ -78,7 +78,7 @@ func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroa
 
 func SendCommand(port serial.Port, portMutex *sync.Mutex, command model.Command) {
 	portMutex.Lock()
-	// fmt.Println(string(command.ToMessage()))
+	fmt.Println("Sending command: " + string(command.ToMessage()))
 	port.Write(command.ToMessage())
 	portMutex.Unlock()
 }

@@ -12,6 +12,7 @@ import (
 
 	"slices"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	extSerial "go.bug.st/serial" // TODO: find a prettier way to do this
@@ -30,7 +31,7 @@ func NewCommunicationModuleRouter(systemStatusBroadcast broadcast.Broadcast[mode
 	router := gin.Default()
 	router.GET("/system_status", GetSystemStatusHandler(systemStatusBroadcast, wsUpgrader))
 	router.POST("/command", GetCommandHandler(serialPort, serialPortMutex))
-  // router.Use(cors.Default())
+  router.Use(cors.Default())
 	return router
 }
 
