@@ -17,7 +17,7 @@ import (
 func OpenSerialConnection(serialPort string) (serial.Port, sync.Mutex, error){
 	// Configuration for the serial port
 	mode := &serial.Mode{
-		BaudRate: 9600,
+		BaudRate: 115200,
 		Parity:   serial.NoParity,
 		DataBits: 8,
 		StopBits: serial.OneStopBit,
@@ -37,28 +37,42 @@ func OpenSerialConnection(serialPort string) (serial.Port, sync.Mutex, error){
 
 func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroadcast *broadcast.Broadcast[model.SystemStatus]) {
 	// Buffer to store incoming data
-	buf := make([]byte, 128)
+	// buf := make([]byte, 128)
 
 	// Read from the port in a loop
 	for {
 		portMutex.Lock()
-		n, err := port.Read(buf)
-		if err != nil {
-			if err != io.EOF {
-				log.Fatalf("port.Read: %v", err)
+		var buf []byte
+		for {
+			// Read one byte
+			b := make([]byte, 1)
+			_, err := port.Read(b)
+			if err != nil {
+				if err != io.EOF {
+					log.Fatalf("port.Read: %v", err)
+				}
+				portMutex.Unlock()
+				break
 			}
-			portMutex.Unlock()
-			break
+
+			// Append the byte to the buffer
+			buf = append(buf, b[0])
+			// fmt.Printf(string(buf));
+
+			// Check for the end character, e.g., newline ('\n')
+			if b[0] == '\n' {
+				fmt.Printf(string(buf));
+				parsed_status, err := ParseSystemStatus(string(buf[:len(buf)-1]));
+				if err != nil {
+					log.Println(err);
+					fmt.Printf(string(buf));
+				}
+				systemStatusBroadcast.SendBroadcast(parsed_status)
+				buf = buf[:0]
+				break // End character found, exit the loop
+			}
 		}
-		// Process the incoming data
-		// fmt.Printf("%s", string(buf[:n]))
-		parsed_status, err := ParseSystemStatus(string(buf[:n]));
-		// fmt.Printf("%v", parsed_status)
-		if err != nil {
-			fmt.Printf("Failed to parse system status :(");
-		}
-		systemStatusBroadcast.SendBroadcast(parsed_status)
-		portMutex.Unlock()
+		portMutex.Unlock();
 	}
 }
 
@@ -74,24 +88,20 @@ func ParseSystemStatus(message string) (model.SystemStatus, error) {
 		return model.SystemStatus{}, errors.New("message is too short")
 	}
 
-	sensorDataByte := message[28]
-	// fmt.Printf("Char %c", sensorDataByte)
-
-	// obecConnectionOK := sensorDataByte&0b01 != 0
-	tankDepressVentValveOpen := sensorDataByte&0b10 != 0
-	engineValveOpen := sensorDataByte&0b100 != 0
-	loadingValveOpen := sensorDataByte&0b1000 != 0
-	loadingDepressVentValveOpen := sensorDataByte&0b10000 != 0
-	umbrilicalConnected := sensorDataByte&0b100000 != 0
-	igniterContinuityOK := sensorDataByte&0b1000000 != 0
-	externalVentAsDefault := sensorDataByte&0b10000000 != 0
-
 	parseF32 := func(s string) (float32, error) {
 		val, err := strconv.ParseFloat(s, 32)
 		if err != nil {
 			return 0, err
 		}
 		return float32(val), nil
+	}
+
+	parseBool := func(s string) (bool, error) {
+		val, err := strconv.ParseBool(s)
+		if err != nil {
+			return false, err
+		}
+		return val, nil
 	}
 
 	lcState, err := ParseLCState(message[0:4])
@@ -114,14 +124,14 @@ func ParseSystemStatus(message string) (model.SystemStatus, error) {
 		return model.SystemStatus{}, errors.New("failed to parse tank depress vent temperature from SystemMessage")
 	}
 
-	obecBatteryVoltage, err := parseF32(message[20:24])
-	if err != nil {
-		return model.SystemStatus{}, errors.New("failed to parse OBEC battery voltage from SystemMessage")
-	}
-
 	loadLinePressurePsi, err := parseF32(message[16:20])
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse load line pressure from SystemMessage")
+	}
+
+	obecBatteryVoltage, err := parseF32(message[20:24])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse OBEC battery voltage from SystemMessage")
 	}
 
 	lcBatteryVoltage, err := parseF32(message[24:28])
@@ -129,14 +139,53 @@ func ParseSystemStatus(message string) (model.SystemStatus, error) {
 		return model.SystemStatus{}, errors.New("failed to parse LC battery voltage from SystemMessage")
 	}
 
-	windSpeedKnt, err := strconv.ParseUint(message[29:32], 10, 8)
+	obecConnectionOK, err := parseBool(message[28:29])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse OBEC Connection OK from SystemMessage")
+	}
+	tankDepressVentValveOpen, err := parseBool(message[29:30])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse tank depress vent valve open from SystemMessage")
+	}
+	engineValveOpen, err := parseBool(message[30:31])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse engine valve open from SystemMessage")
+	}
+	loadingValveOpen, err := parseBool(message[31:32])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse loading valve open from SystemMessage")
+	}
+	loadingDepressVentValveOpen, err := parseBool(message[32:33])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse loading depress vent valve open from SystemMessage")
+	}
+	umbrilicalConnected, err := parseBool(message[33:34])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse umbrilical connected from SystemMessage")
+	}
+	igniterContinuityOK, err := parseBool(message[34:35])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse Igniter Continuity OK from SystemMessage")
+	}
+	externalVentAsDefault, err := parseBool(message[35:36])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse external vent as default from SystemMessage")
+	}
+	windSpeedKnt, err := strconv.ParseUint(message[36:39], 10, 8)
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse wind speed from SystemMessage")
 	}
 
+	obecConnectionOKString := ""
+	if (obecConnectionOK){
+		obecConnectionOKString = "OK"
+	} else {
+		obecConnectionOKString = "ERROR"
+	}
+
 	return model.SystemStatus{
 		OnBoard: model.OnBoardSystemStatus{
-			ConnectionStatus:           "ok",
+			ConnectionStatus:           obecConnectionOKString,
 			TankPressurePSI:            tankPressurePSI,
 			TankTempCelsius:            tankTempCelsius,
 			TankDepressVentTempCelsius: tankDepressVentTempCelsius,
