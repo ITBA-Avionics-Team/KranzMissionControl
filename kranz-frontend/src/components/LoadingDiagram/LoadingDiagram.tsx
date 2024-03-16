@@ -77,10 +77,10 @@ const LoadingDiagram = ({ systemStatus }) => {
 			<Valve name="engine_valve" coords={{x:16.85, y:43}} status={systemStatus.on_board.engine_valve_open} onClick={openValveCommandDialog} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/>
 			<Tank coords={{x:15, y:48}} dimensions={{x: 5, y: 20}} darkMode="true"/>
 			<Text value={"Combustion"} coords={{x:15, y:53}}/>
-			<TemperatureSensor name="combustion_chamber_temperature" coords={{x:20, y:53}} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/>
-			<Text name="combustion_chamber_temperature" value={systemStatus.on_board.combustion_chamber_temp_celsius + "°C"} coords={{x:21.5, y:53}} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/>
-			<PressureSensor name="combustion_chamber_pressure" coords={{x:20, y:59}} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/>
-			<Text name="combustion_chamber_pressure" value={systemStatus.on_board.combustion_chamber_pressure_psi + " PSI"} coords={{x:21.5, y:59}} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/>
+			{/* <TemperatureSensor name="combustion_chamber_temperature" coords={{x:20, y:53}} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/> */}
+			{/* <Text name="combustion_chamber_temperature" value={systemStatus.on_board.combustion_chamber_temp_celsius + "°C"} coords={{x:21.5, y:53}} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/> */}
+			{/* <PressureSensor name="combustion_chamber_pressure" coords={{x:20, y:59}} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/> */}
+			{/* <Text name="combustion_chamber_pressure" value={systemStatus.on_board.combustion_chamber_pressure_psi + " PSI"} coords={{x:21.5, y:59}} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/> */}
 
 			<Umbrilical name="umbrilical" coords={{x:28, y:37}} status={systemStatus.launchpad.umbrilical_connected} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/>
 

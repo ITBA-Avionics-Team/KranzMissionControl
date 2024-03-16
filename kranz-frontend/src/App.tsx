@@ -7,6 +7,7 @@ import { SystemStatusProvider } from './providers/SystemStatusProvider'
 import SystemVisualizer from './components/SystemVisualizer'
 import FloatingText from './components/FloatingText'
 import Navbar from './components/Navbar'
+import CustomCommandSender from './components/CustomCommandSender/CustomCommandSender'
 
 function App() {
   
@@ -15,6 +16,7 @@ function App() {
       <SystemStatusProvider>
         <Navbar />
         <SystemVisualizer />
+        <CustomCommandSender />
       </SystemStatusProvider>
     </div>
   )
