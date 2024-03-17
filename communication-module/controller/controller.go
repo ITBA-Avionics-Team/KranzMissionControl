@@ -29,9 +29,9 @@ var wsUpgrader = websocket.Upgrader{
 
 func NewCommunicationModuleRouter(systemStatusBroadcast broadcast.Broadcast[model.SystemStatus], serialPort extSerial.Port, serialPortMutex *sync.Mutex) *gin.Engine {
 	router := gin.Default()
+	router.Use(cors.Default())
 	router.GET("/system_status", GetSystemStatusHandler(systemStatusBroadcast, wsUpgrader))
 	router.POST("/command", GetCommandHandler(serialPort, serialPortMutex))
-  router.Use(cors.Default())
 	return router
 }
 
