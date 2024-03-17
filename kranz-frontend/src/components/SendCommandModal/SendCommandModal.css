@@ -25,6 +25,7 @@
 .close-button {
   float: right;
   cursor: pointer;
+  font-size: 2rem;
 }
 
 /* Keyframes for the animation */
@@ -40,7 +41,8 @@
 }
 
 .selected {
-  border-color: var(--main-fg-color);
+  border-width: 2px;
+  background-color: #272727;
 }
 
 input {

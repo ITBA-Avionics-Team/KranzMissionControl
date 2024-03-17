@@ -9,15 +9,18 @@ import FloatingText from './components/FloatingText'
 import Navbar from './components/Navbar'
 import CustomCommandSender from './components/CustomCommandSender/CustomCommandSender'
 import SendCommandModal from './components/SendCommandModal/SendCommandModal'
+import { SendCommandModalProvider } from './providers/SendCommandModalProvider'
 
 function App() {
   
   return (
     <div style={{ height: '100vh', width: '100vw' , display:'flex', flexDirection: 'column'}}>
       <SystemStatusProvider>
-        <Navbar />
-        <SystemVisualizer />
-        <SendCommandModal />
+        <SendCommandModalProvider>
+          <Navbar />
+          <SystemVisualizer />
+          <SendCommandModal />
+        </SendCommandModalProvider>
       </SystemStatusProvider>
     </div>
   )

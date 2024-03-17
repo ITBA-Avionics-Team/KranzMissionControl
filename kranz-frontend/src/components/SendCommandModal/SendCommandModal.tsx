@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
+import { SendCommandModalContext } from '../../contexts/SendCommandModalContext';
 import CustomCommandSender from '../CustomCommandSender/CustomCommandSender';
 import './SendCommandModal.css'; // Make sure to create this CSS file
 
@@ -78,13 +79,13 @@ function isCompleteCommand(command: Command): boolean {
   return true;
 }
 
-const SendCommandModal = ({command}) => {
-  const [isOpen, setIsOpen] = useState(true);
+const SendCommandModal = ({presetCommand}) => {
+  const { showSendCommandModal, setShowSendCommandModal } = useContext<boolean>(SendCommandModalContext);
   const [currentCommand, setCurrentCommand] = useState({});
   const [currentCommandRaw, setCurrentCommandRaw] = useState('');
   const [commandStatus, setCommandStatus] = useState('');
 
-  const togglePopup = () => setIsOpen(!isOpen);
+  const closeModal = () => setShowSendCommandModal(false);
 
   const setCurrentCommandAndUpdateCommandRaw = (command) => {
     setCurrentCommand(command);
@@ -150,10 +151,10 @@ const SendCommandModal = ({command}) => {
 
   return (
     <>
-      {isOpen && (
+      {showSendCommandModal && (
         <div className="modal">
           <div className="modal-content">
-            <span className="close-button" onClick={togglePopup}>&times;</span>
+            <span className="close-button" onClick={closeModal}>&times;</span>
             <h2>Send Command</h2>
             {/* <CommandTypeSelector /> */}
 
