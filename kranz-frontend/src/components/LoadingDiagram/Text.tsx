@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Text = ({ name, value, coords, onMouseEnter, onMouseLeave }) => {
+const Text = ({ name, value, coords, size, onMouseEnter, onMouseLeave }) => {
 
 	const xPercentage = coords.x; 
   const yPercentage = coords.y; 
@@ -9,6 +9,7 @@ const Text = ({ name, value, coords, onMouseEnter, onMouseLeave }) => {
   const textStyle = {
     color: 'var(--main-fg-color)',
     cursor: 'default',
+    fontSize: `${size}vw`,
 
 		position: 'absolute',
     top: `${yPercentage}%`,

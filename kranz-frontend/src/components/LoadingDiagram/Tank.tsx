@@ -4,16 +4,18 @@ import tankDarkModeSvg from '../../assets/loading-diagram/tank_image_dark_mode.s
 const Tank = ({ src, coords, dimensions, darkMode }) => {
 
   // Style for the valve
-  const imgStyle = {
+  const tankStyle = {
 		position: 'absolute',
     top: `${coords.y}%`,
     left: `${coords.x}%`,
-    // width: `${dimensions.x}%`,
     height: `${dimensions.y}%`,
+    width: `${dimensions.x}%`,
+    border: '1px solid var(--main-fg-color)',
+    borderRadius: '1rem'
   };
 
   return (
-    <img src={darkMode ? tankDarkModeSvg : tankLightModeSvg} style={imgStyle}/>
+    <div style={tankStyle}></div>
   );
 };
 
