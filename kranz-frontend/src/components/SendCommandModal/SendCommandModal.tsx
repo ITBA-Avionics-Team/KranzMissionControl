@@ -1,6 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { SendCommandModalContext } from '../../contexts/SendCommandModalContext';
 import CustomCommandSender from '../CustomCommandSender/CustomCommandSender';
+import LoadingIndicator from '../LoadingIndicator/LoadingIndicator';
 import './SendCommandModal.css'; // Make sure to create this CSS file
 
 const COMMAND_TYPES = ["VALVE_COMMAND","SWITCH_STATE_COMMAND","SET_EXTERNAL_VENT_AS_DEFAULT_COMMAND","RAW_COMMAND"] as const;
@@ -128,6 +129,8 @@ const SendCommandModal = ({presetCommand}) => {
       string_value: currentCommandRaw
     };
 
+    setCommandStatus('Sending command...');
+
     fetch('http://localhost:8080/command', {
       method: 'POST',
       headers: {
@@ -236,6 +239,7 @@ const SendCommandModal = ({presetCommand}) => {
               />
               <button onClick={sendCommand}>Send Command</button>
               <div>{commandStatus}</div>
+              {commandStatus == 'Sending command...' && (<LoadingIndicator />)}
             </div>
           </div>
         </div>
