@@ -40,7 +40,7 @@ struct Command<'r> {
 }
 
 // struct SystemState {
-//     tank_pressure_psi: f64,
+//     tank_pressure_bar: f64,
 //     tank_temp_celsius: f64,
 //     tank_depress_vent_temp_celsius: f64,
 //     tank_depress_vent_valve_open: bool,

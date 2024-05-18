@@ -69,7 +69,7 @@ const LoadingDiagram = ({ systemStatus }) => {
 			<TemperatureSensor name="tank_temperature" coords={{x:20, y:20}} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/>
 			<Text name="tank_temperature" value={systemStatus.on_board.tank_temp_celsius +  "°C"} coords={{x:21.5, y:20}} size="0.8" onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/>
 			<PressureSensor name="tank_pressure" coords={{x:20, y:25}} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/>
-			<Text name="tank_pressure" value={systemStatus.on_board.tank_pressure_psi +  " PSI"} coords={{x:21.5, y:25}} size="0.8" onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/>
+			<Text name="tank_pressure" value={systemStatus.on_board.tank_pressure_bar +  " BAR"} coords={{x:21.5, y:25}} size="0.8" onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/>
 
 			<VerticalLine coords={{x:17.5, y:35}} dimensions={{x: 7, y: 8}}/>
 			<HorizontalLine coords={{x:17.5, y:38}} dimensions={{x: 10, y: 9}}/>
@@ -82,7 +82,7 @@ const LoadingDiagram = ({ systemStatus }) => {
 			{/* <TemperatureSensor name="combustion_chamber_temperature" coords={{x:20, y:53}} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/> */}
 			{/* <Text name="combustion_chamber_temperature" value={systemStatus.on_board.combustion_chamber_temp_celsius + "°C"} coords={{x:21.5, y:53}} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/> */}
 			{/* <PressureSensor name="combustion_chamber_pressure" coords={{x:20, y:59}} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/> */}
-			{/* <Text name="combustion_chamber_pressure" value={systemStatus.on_board.combustion_chamber_pressure_psi + " PSI"} coords={{x:21.5, y:59}} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/> */}
+			{/* <Text name="combustion_chamber_pressure" value={systemStatus.on_board.combustion_chamber_pressure_bar + " BAR"} coords={{x:21.5, y:59}} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/> */}
 
 			<Umbrilical name="umbrilical" coords={{x:28, y:37}} status={systemStatus.launchpad.umbrilical_connected} onMouseEnter={displayNameOnCursor} onMouseLeave={clearCursorName}/>
 			<Text value={"umbrilical"} coords={{x:27, y:34}} size="0.8"/>

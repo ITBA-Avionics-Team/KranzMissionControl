@@ -12,7 +12,7 @@ type FlightComputersStatus struct {
 
 type OnBoardSystemStatus struct {
 	ConnectionStatus           string                `json:"connection_status"`
-	TankPressurePSI            float32               `json:"tank_pressure_psi"`
+	TankPressureBAR            float32               `json:"tank_pressure_bar"`
 	TankTempCelsius            float32               `json:"tank_temp_celsius"`
 	TankDepressVentTempCelsius float32               `json:"tank_depress_vent_temp_celsius"`
 	TankDepressVentValveOpen   bool                  `json:"tank_depress_vent_valve_open"`
@@ -68,7 +68,7 @@ func Get4ByteStringFromState(state LCState) string {
 type LaunchpadSystemStatus struct {
 	CurrentState                LCState `json:"current_state"`
 	ConnectionStatus            string  `json:"connection_status"`
-	LoadLinePressurePsi         float32 `json:"load_line_pressure_psi"`
+	LoadLinePressureBar         float32 `json:"load_line_pressure_bar"`
 	LoadingValveOpen            bool    `json:"loading_valve_open"`
 	LoadingDepressVentValveOpen bool    `json:"loading_depress_vent_valve_open"`
 	UmbrilicalConnected         bool    `json:"umbrilical_connected"`

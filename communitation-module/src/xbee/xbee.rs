@@ -17,7 +17,7 @@ pub struct FlightComputersStatus {
 #[derive(Serialize)]
 pub struct OnBoardSystemState {
     connection_status: String,
-    tank_pressure_psi: f32,
+    tank_pressure_bar: f32,
     tank_temp_celsius: f32,
     tank_depress_vent_temp_celsius: f32,
     tank_depress_vent_valve_open: bool,
@@ -72,7 +72,7 @@ impl SystemState {
         Ok(SystemState {
             on_board: OnBoardSystemState {
                 connection_status: String::from("ok"),
-                tank_pressure_psi: message[4..8].parse::<f32>().map_err(|_| "Failed to parse tank pressure from SystemMessage")?,
+                tank_pressure_bar: message[4..8].parse::<f32>().map_err(|_| "Failed to parse tank pressure from SystemMessage")?,
                 tank_temp_celsius: message[8..12].parse::<f32>().map_err(|_| "Failed to parse tank temperature from SystemMessage")?,
                 tank_depress_vent_temp_celsius: message[12..16].parse::<f32>().map_err(|_| "Failed to parse tank depress vent temperature from SystemMessage")?,
                 tank_depress_vent_valve_open: tank_depress_vent_valve_open,

@@ -109,7 +109,7 @@ func ParseSystemStatus(message string) (model.SystemStatus, error) {
 		return model.SystemStatus{}, err
 	}
 
-	tankPressurePSI, err := parseF32(message[4:8])
+	tankPressureBAR, err := parseF32(message[4:8])
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse tank pressure from SystemMessage")
 	}
@@ -124,7 +124,7 @@ func ParseSystemStatus(message string) (model.SystemStatus, error) {
 		return model.SystemStatus{}, errors.New("failed to parse tank depress vent temperature from SystemMessage")
 	}
 
-	loadLinePressurePsi, err := parseF32(message[16:20])
+	loadLinePressureBar, err := parseF32(message[16:20])
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse load line pressure from SystemMessage")
 	}
@@ -186,7 +186,7 @@ func ParseSystemStatus(message string) (model.SystemStatus, error) {
 	return model.SystemStatus{
 		OnBoard: model.OnBoardSystemStatus{
 			ConnectionStatus:           obecConnectionOKString,
-			TankPressurePSI:            tankPressurePSI,
+			TankPressureBAR:            tankPressureBAR,
 			TankTempCelsius:            tankTempCelsius,
 			TankDepressVentTempCelsius: tankDepressVentTempCelsius,
 			TankDepressVentValveOpen:   tankDepressVentValveOpen,
@@ -197,7 +197,7 @@ func ParseSystemStatus(message string) (model.SystemStatus, error) {
 		Launchpad: model.LaunchpadSystemStatus{
 			CurrentState:                lcState,
 			ConnectionStatus:            "ok",
-			LoadLinePressurePsi:         loadLinePressurePsi,
+			LoadLinePressureBar:         loadLinePressureBar,
 			LoadingValveOpen:            loadingValveOpen,
 			LoadingDepressVentValveOpen: loadingDepressVentValveOpen,
 			UmbrilicalConnected:         umbrilicalConnected,

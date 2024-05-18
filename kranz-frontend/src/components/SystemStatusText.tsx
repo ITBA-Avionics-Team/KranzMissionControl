@@ -8,10 +8,10 @@ const SystemStatusText = ({ systemStatus }) => {
   return (
     <div className="system-status-text">
       <div><b>Current state:</b> {systemStatus?.launchpad?.current_state}</div>
-      <div><b>Tank pressure:</b> {systemStatus?.on_board?.tank_pressure_psi} PSI</div>
+      <div><b>Tank pressure:</b> {systemStatus?.on_board?.tank_pressure_bar} BAR</div>
       <div><b>Tank temperature:</b> {systemStatus?.on_board?.tank_temp_celsius} °C</div>
       <div><b>Tank depress vent temperature:</b> {systemStatus?.on_board?.tank_depress_vent_temp_celsius} °C</div>
-      <div><b>Loading line pressure:</b> {systemStatus?.launchpad?.load_line_pressure_psi} PSI</div>
+      <div><b>Loading line pressure:</b> {systemStatus?.launchpad?.load_line_pressure_bar} BAR</div>
       <div><b>OBEC battery voltage:</b> {systemStatus?.on_board?.obec_battery_voltage_volt} V</div>
       <div><b>LC battery voltage:</b> {systemStatus?.launchpad?.lc_battery_voltage_volt} V</div>
       <div><b>Connection to OBEC:</b> {systemStatus?.on_board?.connection_status ? "OK" : "Error"}</div>

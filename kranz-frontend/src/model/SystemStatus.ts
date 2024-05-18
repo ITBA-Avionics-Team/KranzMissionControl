@@ -5,12 +5,12 @@ interface FlightComputersStatus {
 
 interface OnBoardSystemStatus {
   connection_status: string;
-  tank_pressure_psi: number;
+  tank_pressure_bar: number;
   tank_temp_celsius: number;
   tank_depress_vent_temp_celsius: number;
   tank_depress_vent_valve_open: boolean;
   engine_valve_open: boolean;
-  combustion_chamber_pressure_psi: number;
+  combustion_chamber_pressure_bar: number;
   combustion_chamber_temp_celsius: number;
   obec_battery_voltage_volt: number;
   flight_computers_status: FlightComputersStatus;
@@ -21,7 +21,7 @@ type LCState = 'STANDBY' | 'STANDBY_PRESSURE_WARNING' | 'STANDBY_PRESSURE_WARNIN
 interface LaunchpadSystemStatus {
   current_state: LCState;
   connection_status: string;
-  load_line_pressure_psi: number;
+  load_line_pressure_bar: number;
   loading_valve_open: boolean;
   loading_depress_vent_valve_open: boolean;
   umbrilical_connected: boolean;
@@ -43,13 +43,13 @@ export interface SystemStatus {
 export const DefaultSystemStatus: SystemStatus = {
   on_board: {
     connection_status: "OK",
-    tank_pressure_psi: 14,
+    tank_pressure_bar: 14,
     tank_temp_celsius: 26,
     tank_depress_vent_temp_celsius: 10,
     tank_depress_vent_valve_open: true,
     engine_valve_open: false,
     obec_battery_voltage_volt: 0,
-    combustion_chamber_pressure_psi: 20,
+    combustion_chamber_pressure_bar: 20,
     combustion_chamber_temp_celsius: 25,
     flight_computers_status: {
       altium_ok: false,
@@ -59,7 +59,7 @@ export const DefaultSystemStatus: SystemStatus = {
   launchpad: {
     current_state: 'STANDBY',
     connection_status: "OK",
-    load_line_pressure_psi: 0,
+    load_line_pressure_bar: 0,
     loading_valve_open: false,
     loading_depress_vent_valve_open: false,
     umbrilical_connected: false,
