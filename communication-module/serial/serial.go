@@ -143,34 +143,22 @@ func ParseSystemStatus(message string) (model.SystemStatus, error) {
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse OBEC Connection OK from SystemMessage")
 	}
-	tankDepressVentValveOpen, err := parseBool(message[29:30])
-	if err != nil {
-		return model.SystemStatus{}, errors.New("failed to parse tank depress vent valve open from SystemMessage")
-	}
-	engineValveOpen, err := parseBool(message[30:31])
-	if err != nil {
-		return model.SystemStatus{}, errors.New("failed to parse engine valve open from SystemMessage")
-	}
-	loadingValveOpen, err := parseBool(message[31:32])
-	if err != nil {
-		return model.SystemStatus{}, errors.New("failed to parse loading valve open from SystemMessage")
-	}
-	loadingDepressVentValveOpen, err := parseBool(message[32:33])
-	if err != nil {
-		return model.SystemStatus{}, errors.New("failed to parse loading depress vent valve open from SystemMessage")
-	}
+
 	umbrilicalConnected, err := parseBool(message[33:34])
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse umbrilical connected from SystemMessage")
 	}
+
 	igniterContinuityOK, err := parseBool(message[34:35])
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse Igniter Continuity OK from SystemMessage")
 	}
+
 	externalVentAsDefault, err := parseBool(message[35:36])
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse external vent as default from SystemMessage")
 	}
+
 	windSpeedKnt, err := strconv.ParseUint(message[36:39], 10, 8)
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse wind speed from SystemMessage")
@@ -189,8 +177,6 @@ func ParseSystemStatus(message string) (model.SystemStatus, error) {
 			TankPressureBAR:            tankPressureBAR,
 			TankTempCelsius:            tankTempCelsius,
 			TankDepressVentTempCelsius: tankDepressVentTempCelsius,
-			TankDepressVentValveOpen:   tankDepressVentValveOpen,
-			EngineValveOpen:            engineValveOpen,
 			OBECBatteryVoltageVolt:     obecBatteryVoltage,
 			FlightComputersStatus:      model.FlightComputersStatus{AdaOK: true, AltiumOK: true},
 		},
@@ -198,8 +184,6 @@ func ParseSystemStatus(message string) (model.SystemStatus, error) {
 			CurrentState:                lcState,
 			ConnectionStatus:            "ok",
 			LoadLinePressureBar:         loadLinePressureBar,
-			LoadingValveOpen:            loadingValveOpen,
-			LoadingDepressVentValveOpen: loadingDepressVentValveOpen,
 			UmbrilicalConnected:         umbrilicalConnected,
 			IgniterContinuityOK:         igniterContinuityOK,
 			ExternalVentAsDefault:       externalVentAsDefault,
