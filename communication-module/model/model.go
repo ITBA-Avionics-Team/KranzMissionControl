@@ -15,6 +15,8 @@ type OnBoardSystemStatus struct {
 	TankPressureBAR            float32               `json:"tank_pressure_bar"`
 	TankTempCelsius            float32               `json:"tank_temp_celsius"`
 	TankDepressVentTempCelsius float32               `json:"tank_depress_vent_temp_celsius"`
+	TankDepressVentValveOpen   bool                  `json:"tank_depress_vent_valve_open"`
+	EngineValveOpen            bool                  `json:"engine_valve_open"`
 	OBECBatteryVoltageVolt     float32               `json:"obec_battery_voltage_volt"`
 	FlightComputersStatus      FlightComputersStatus `json:"flight_computers_status"`
 }
@@ -67,6 +69,8 @@ type LaunchpadSystemStatus struct {
 	CurrentState                LCState `json:"current_state"`
 	ConnectionStatus            string  `json:"connection_status"`
 	LoadLinePressureBar         float32 `json:"load_line_pressure_bar"`
+	LoadingValveOpen            bool    `json:"loading_valve_open"`
+	LoadingDepressVentValveOpen bool    `json:"loading_depress_vent_valve_open"`
 	UmbrilicalConnected         bool    `json:"umbrilical_connected"`
 	IgniterContinuityOK         bool    `json:"igniter_continuity_ok"`
 	ExternalVentAsDefault       bool    `json:"external_vent_as_default"`
