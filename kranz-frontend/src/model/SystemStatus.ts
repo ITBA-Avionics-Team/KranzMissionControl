@@ -1,3 +1,5 @@
+// TODO: UPDATE THESE INTERFACES SO TAHT WE CAN USE THEM
+
 interface FlightComputersStatus {
   altium_ok: boolean;
   ada_ok: boolean;
@@ -40,34 +42,63 @@ export interface SystemStatus {
   weather_data: WeatherData;
 }
 
-export const DefaultSystemStatus: SystemStatus = {
+// export const DefaultSystemStatus: SystemStatus = {
+//   on_board: {
+//     connection_status: "OK",
+//     tank_pressure_bar: 14,
+//     tank_temp_celsius: 26,
+//     tank_depress_vent_temp_celsius: 10,
+//     tank_depress_vent_valve_open: true,
+//     engine_valve_open: false,
+//     obec_battery_voltage_volt: 0,
+//     combustion_chamber_pressure_bar: 20,
+//     combustion_chamber_temp_celsius: 25,
+//     flight_computers_status: {
+//       altium_ok: false,
+//       ada_ok: false,
+//     },
+//   },
+//   launchpad: {
+//     current_state: 'STANDBY',
+//     connection_status: "OK",
+//     load_line_pressure_bar: 0,
+//     loading_valve_open: false,
+//     loading_depress_vent_valve_open: false,
+//     umbrilical_connected: false,
+//     igniter_continuity_ok: false,
+//     external_vent_as_default: false,
+//     lc_battery_voltage_volt: 0,
+//   },
+//   weather_data: {
+//     wind_speed_knt: 0,
+//   },
+// }
+
+export const DefaultSystemStatus = {
   on_board: {
-    connection_status: "OK",
-    tank_pressure_bar: 14,
-    tank_temp_celsius: 26,
-    tank_depress_vent_temp_celsius: 10,
-    tank_depress_vent_valve_open: true,
-    engine_valve_open: false,
-    obec_battery_voltage_volt: 0,
-    combustion_chamber_pressure_bar: 20,
-    combustion_chamber_temp_celsius: 25,
+    connection_status: "?",
+    tank_depress_vent_temp_celsius: "?",
+    tank_depress_vent_valve_open: "?",
+    engine_valve_open: "?",
+    obec_battery_voltage_volt: "?",
     flight_computers_status: {
-      altium_ok: false,
-      ada_ok: false,
+      altium_ok: "?",
+      ada_ok: "?",
     },
   },
   launchpad: {
-    current_state: 'STANDBY',
-    connection_status: "OK",
-    load_line_pressure_bar: 0,
-    loading_valve_open: false,
-    loading_depress_vent_valve_open: false,
-    umbrilical_connected: false,
-    igniter_continuity_ok: false,
-    external_vent_as_default: false,
-    lc_battery_voltage_volt: 0,
+    connection_status: "?",
+    current_state: "?",
+    load_line_pressure_bar: "?",
+    ground_temp_celsius: "?",
+    loading_valve_open: "?",
+    loading_depress_vent_valve_open: "?",
+    umbrilical_connected: "?",
+    umbrilical_finished_disconnect: "?",
+    igniter_continuity_ok: "?",
+    external_vent_as_default: "?"
   },
   weather_data: {
-    wind_speed_knt: 0,
+    wind_speed_knt: "?",
   },
 }
