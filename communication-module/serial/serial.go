@@ -16,6 +16,9 @@ import (
 	"go.bug.st/serial"
 )
 
+var timeOfLastMessage = time.Now()
+var latestSystemStatus = model.SystemStatus{}
+
 func OpenSerialConnection(serialPort string) (serial.Port, sync.Mutex, error) {
 	// Configuration for the serial port
 	mode := &serial.Mode{
@@ -70,12 +73,14 @@ func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroa
 			// Check for the end character, e.g., newline ('\n')
 			if b[0] == '\n' {
 				fmt.Printf("Received message from XBEE: " + string(buf))
+				timeOfLastMessage = time.Now()
 				writer.WriteString(time.Now().String() + " ---> " + string(buf))
 				parsed_status, err := ParseSystemStatus(string(buf[:len(buf)-1]))
 				if err != nil {
 					log.Println(err)
 				}
 				fmt.Printf("Parsed message to system status: %v\n", parsed_status)
+				latestSystemStatus = parsed_status
 				systemStatusBroadcast.SendBroadcast(parsed_status)
 				buf = buf[:0]
 				err = writer.Flush()
@@ -83,6 +88,12 @@ func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroa
 					fmt.Println("Error flushing data to file:", err)
 					return
 				}
+			}
+
+			if (time.Since(timeOfLastMessage).Milliseconds() > 4000) {
+				var systemStatusWithLCConnectionError = latestSystemStatus
+				systemStatusWithLCConnectionError.Launchpad.ConnectionStatus = "Last message received " + fmt.Sprintf("%f", time.Since(timeOfLastMessage).Seconds()) + " seconds ago"
+				systemStatusBroadcast.SendBroadcast(systemStatusWithLCConnectionError)
 			}
 			
 		}
