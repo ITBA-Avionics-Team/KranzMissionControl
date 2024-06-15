@@ -23,7 +23,7 @@ type LCState = 'STANDBY' | 'STANDBY_PRESSURE_WARNING' | 'STANDBY_PRESSURE_WARNIN
 interface LaunchpadSystemStatus {
   current_state: LCState;
   connection_status: string;
-  load_line_pressure_bar: number;
+  loading_line_pressure_bar: number;
   loading_valve_open: boolean;
   loading_depress_vent_valve_open: boolean;
   umbrilical_connected: boolean;
@@ -61,7 +61,7 @@ export interface SystemStatus {
 //   launchpad: {
 //     current_state: 'STANDBY',
 //     connection_status: "OK",
-//     load_line_pressure_bar: 0,
+//     loading_line_pressure_bar: 0,
 //     loading_valve_open: false,
 //     loading_depress_vent_valve_open: false,
 //     umbrilical_connected: false,
@@ -89,7 +89,7 @@ export const DefaultSystemStatus = {
   launchpad: {
     connection_status: "?",
     current_state: "?",
-    load_line_pressure_bar: "?",
+    loading_line_pressure_bar: "?",
     ground_temp_celsius: "?",
     loading_valve_open: "?",
     loading_depress_vent_valve_open: "?",

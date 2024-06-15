@@ -39,15 +39,14 @@ func OpenSerialConnection(serialPort string) (serial.Port, sync.Mutex, error) {
 func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroadcast *broadcast.Broadcast[model.SystemStatus]) {
 	// Buffer to store incoming data
 
-	file, err := os.OpenFile("logs/" + time.Now().String() + "_LC_message_log.txt", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	file, err := os.OpenFile("logs/"+time.Now().String()+"_LC_message_log.txt", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
-			fmt.Println("Error opening file:", err)
-			return
+		fmt.Println("Error opening file:", err)
+		return
 	}
 	defer file.Close()
 	writer := bufio.NewWriter(file)
-	writer.WriteString("LC message log for " + time.Now().String() + "\n");
-
+	writer.WriteString("LC message log for " + time.Now().String() + "\n")
 
 	// Read from the port in a loop
 	for {
@@ -72,7 +71,7 @@ func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroa
 			// Check for the end character, e.g., newline ('\n')
 			if b[0] == '\n' {
 				fmt.Printf("Received message from XBEE: " + string(buf))
-				writer.WriteString(time.Now().String() + " ---> " + string(buf));
+				writer.WriteString(time.Now().String() + " ---> " + string(buf))
 				parsed_status, err := ParseSystemStatus(string(buf[:len(buf)-1]))
 				if err != nil {
 					log.Println(err)
@@ -84,10 +83,10 @@ func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroa
 			}
 		}
 		err = writer.Flush()
-    if err != nil {
-        fmt.Println("Error flushing data to file:", err)
-        return
-    }
+		if err != nil {
+			fmt.Println("Error flushing data to file:", err)
+			return
+		}
 		portMutex.Unlock()
 	}
 }
@@ -130,9 +129,9 @@ func ParseSystemStatus(message string) (model.SystemStatus, error) {
 		return model.SystemStatus{}, errors.New("failed to parse tank depress vent temperature from SystemMessage")
 	}
 
-	loadLinePressureBar, err := parseF32(message[9:13])
+	loadingLinePressureBar, err := parseF32(message[9:13])
 	if err != nil {
-		return model.SystemStatus{}, errors.New("failed to parse load line pressure from SystemMessage")
+		return model.SystemStatus{}, errors.New("failed to parse loading line pressure from SystemMessage")
 	}
 
 	groundTempCelsius, err := parseF32(message[13:18])
@@ -200,7 +199,7 @@ func ParseSystemStatus(message string) (model.SystemStatus, error) {
 		Launchpad: model.LaunchpadSystemStatus{
 			CurrentState:                 lcState,
 			ConnectionStatus:             "Ok",
-			LoadLinePressureBar:          loadLinePressureBar,
+			LoadingLinePressureBar:       loadingLinePressureBar,
 			GroundTempCelsius:            groundTempCelsius,
 			LoadingValveOpen:             loadingValveOpen,
 			LoadingDepressVentValveOpen:  loadingDepressVentValveOpen,

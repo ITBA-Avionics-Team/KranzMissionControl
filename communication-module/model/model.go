@@ -62,7 +62,7 @@ func Get4ByteStringFromState(state LCState) string {
 type LaunchpadSystemStatus struct {
 	ConnectionStatus             string  `json:"connection_status"`
 	CurrentState                 LCState `json:"current_state"`
-	LoadLinePressureBar          float32 `json:"load_line_pressure_bar"`
+	LoadingLinePressureBar       float32 `json:"loading_line_pressure_bar"`
 	GroundTempCelsius            float32 `json:"ground_temp_celsius"`
 	LoadingValveOpen             bool    `json:"loading_valve_open"`
 	LoadingDepressVentValveOpen  bool    `json:"loading_depress_vent_valve_open"`
