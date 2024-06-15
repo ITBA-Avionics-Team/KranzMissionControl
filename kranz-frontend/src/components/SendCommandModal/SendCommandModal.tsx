@@ -7,10 +7,10 @@ import './SendCommandModal.css'; // Make sure to create this CSS file
 const COMMAND_TYPES = ["VALVE_COMMAND","SWITCH_STATE_COMMAND","SET_EXTERNAL_VENT_AS_DEFAULT_COMMAND","RAW_COMMAND"] as const;
 export type CommandType = typeof COMMAND_TYPES[number];
 
-const STATES = ["STANDBY","STANDBY_PRESSURE_WARNING","STANDBY_PRESSURE_WARNING_EXTERNAL_VENT","LOADING","PRE_FLIGHT_CHECK","PRE_LAUNCH_WIND_CHECK","PRE_LAUNCH_UMBRILICAL_DISCONNECT","IGNITION_IGNITERS_ON","IGNITION_OPEN_VALVE","IGNITION_IGNITERS_OFF","ABORT"] as const;
+const STATES = ["STANDBY","STANDBY_PRESSURE_WARNING","LOADING","PRE_FLIGHT_CHECK","PRE_LAUNCH_WIND_CHECK","PRE_LAUNCH_UMBRILICAL_DISCONNECT","IGNITION_OPEN_VALVE", "IGNITION_IGNITERS_ON","IGNITION_IGNITERS_OFF","ABORT"] as const;
 export type LCState = typeof STATES[number];
 
-const VALVES = ["TANK_DEPRESS_VENT_VALVE", "ENGINE_VALVE", "LOADING_VALVE", "LOADING_LINE_DEPRESS_VENT_VALVE"] as const;
+const VALVES = ["ENGINE_VALVE", "LOADING_VALVE"] as const;
 export type Valve = typeof VALVES[number];
 
 export function commandToMessage(command: Command) {
@@ -48,8 +48,6 @@ function get4ByteStringFromState(state) {
       return 'STBY';
     case 'STANDBY_PRESSURE_WARNING':
       return 'STPW';
-    case 'STANDBY_PRESSURE_WARNING_EXTERNAL_VENT':
-      return 'STPE';
     case 'LOADING':
       return 'LDNG';
     case 'PRE_FLIGHT_CHECK':
