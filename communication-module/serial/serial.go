@@ -48,11 +48,10 @@ func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroa
 	writer := bufio.NewWriter(file)
 	writer.WriteString("LC message log for " + time.Now().String() + "\n")
 
+	var buf []byte
 	// Read from the port in a loop
-	for {
-		portMutex.Lock()
-		var buf []byte
 		for {
+			portMutex.Lock()
 			// Read one byte
 			b := make([]byte, 1)
 			_, err := port.Read(b)
@@ -60,14 +59,14 @@ func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroa
 				if err != io.EOF {
 					log.Fatalf("port.Read: %v", err)
 				}
-				portMutex.Unlock()
-				break
 			}
+			portMutex.Unlock()
 
 			// Append the byte to the buffer
-			buf = append(buf, b[0])
-			// fmt.Printf(string(buf));
-
+			if (b[0] != 0) {
+				buf = append(buf, b[0])
+			}
+			
 			// Check for the end character, e.g., newline ('\n')
 			if b[0] == '\n' {
 				fmt.Printf("Received message from XBEE: " + string(buf))
@@ -76,19 +75,17 @@ func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroa
 				if err != nil {
 					log.Println(err)
 				}
-				fmt.Printf("Parsed message to system status: %v", parsed_status)
+				fmt.Printf("Parsed message to system status: %v\n", parsed_status)
 				systemStatusBroadcast.SendBroadcast(parsed_status)
 				buf = buf[:0]
-				break // End character found, exit the loop
+				err = writer.Flush()
+				if err != nil {
+					fmt.Println("Error flushing data to file:", err)
+					return
+				}
 			}
+			
 		}
-		err = writer.Flush()
-		if err != nil {
-			fmt.Println("Error flushing data to file:", err)
-			return
-		}
-		portMutex.Unlock()
-	}
 }
 
 func SendCommand(port serial.Port, portMutex *sync.Mutex, command model.Command) {

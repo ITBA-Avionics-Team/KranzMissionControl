@@ -22,6 +22,7 @@ func main() {
 	
 	systemStatusBroadcast := broadcast.NewBroadcast[model.SystemStatus]()
 	serialPort, mutex, err := serial.OpenSerialConnection(serialPortName)
+	serialPort.SetReadTimeout(1000000);
 	if err != nil {
 		log.Fatalf("failed to opn serial port: %v", err)
 	}
