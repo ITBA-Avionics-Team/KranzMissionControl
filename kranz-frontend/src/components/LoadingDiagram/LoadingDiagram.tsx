@@ -7,13 +7,16 @@ import Umbrilical from './Umbrilical';
 import Valve from './Valve';
 import Image from './Image';
 import Text from './Text';
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import FloatingText from '../FloatingText';
 import VerticalLine from './VerticalLine';
 import HorizontalLine from './HorizontalLine';
 import Tank from './Tank';
+import { SendCommandModalContext } from '../../contexts/SendCommandModalContext';
 
 const LoadingDiagram = ({ systemStatus }) => {
+
+	const { sendCommandModalContext, setSendCommandModalContext } = useContext(SendCommandModalContext);
 
   // Style for the valve
   const containerStyle = {
@@ -41,7 +44,7 @@ const LoadingDiagram = ({ systemStatus }) => {
 	};
 
 	const openValveCommandDialog = (valveId) => {
-		console.log("ValveOmmand:" + valveId);
+		setSendCommandModalContext({...sendCommandModalContext, showModal: true, currentCommand:{type:'VALVE_COMMAND', valve: valveId.toUpperCase()}});
   };
 
 	const displayNameOnCursor = (componentId) => {

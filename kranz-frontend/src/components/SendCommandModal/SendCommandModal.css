@@ -42,7 +42,8 @@
 
 .selected {
   border-width: 2px;
-  background-color: #272727;
+  background-color: var(--main-fg-color);
+  color: var(--main-bg-color);
 }
 
 input {

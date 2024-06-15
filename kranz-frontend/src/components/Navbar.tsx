@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { SendCommandModalContext } from "../contexts/SendCommandModalContext";
 
 const Navbar = () => {
-  const { showSendCommandModal, setShowSendCommandModal } = useContext<boolean>(SendCommandModalContext);
+  const { sendCommandModalContext, setSendCommandModalContext } = useContext(SendCommandModalContext);
 
   const navbarStyle = {
     width: '100vw',
@@ -22,7 +22,7 @@ const Navbar = () => {
     <div style={navbarStyle}>
       <h3 style={{marginLeft: '2rem'}}>Kranz Mission Control 🚀</h3>
       <button
-        onClick={() => setShowSendCommandModal(true)}>
+        onClick={() => setSendCommandModalContext({...sendCommandModalContext, showModal: true})}>
         Send Command
       </button>
     </div>

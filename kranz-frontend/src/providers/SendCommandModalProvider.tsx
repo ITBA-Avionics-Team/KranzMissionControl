@@ -4,10 +4,10 @@ import { SystemStatusContext } from "../contexts/SystemStatusContext";
 import { DefaultSystemStatus } from "../model/SystemStatus";
 
 export const SendCommandModalProvider = ({ children }) => {
-  const [showSendCommandModal, setShowSendCommandModal] = useState(false);
+  const [sendCommandModalContext, setSendCommandModalContext] = useState({showModal: false, currentCommand:{}});
 
   return (
-    <SendCommandModalContext.Provider value={{ showSendCommandModal, setShowSendCommandModal }}>
+    <SendCommandModalContext.Provider value={{ sendCommandModalContext, setSendCommandModalContext }}>
       {children}
     </SendCommandModalContext.Provider>
   );

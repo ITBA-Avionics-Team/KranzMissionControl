@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { SendCommandModalContext } from '../../contexts/SendCommandModalContext';
 import CustomCommandSender from '../CustomCommandSender/CustomCommandSender';
 import LoadingIndicator from '../LoadingIndicator/LoadingIndicator';
@@ -14,29 +14,29 @@ const VALVES = ["ENGINE_VALVE", "LOADING_VALVE"] as const;
 export type Valve = typeof VALVES[number];
 
 export function commandToMessage(command: Command) {
-  switch (command.command_type) {
+  switch (command.type) {
     case 'VALVE_COMMAND':
       switch (command.valve) {
         case 'TANK_DEPRESS_VENT_VALVE':
-          return `VCTDVV${command.uint_value}|`;
+          return `VCTDVV${command.uintValue}|`;
         case 'ENGINE_VALVE':
-          return `VCENGV${command.uint_value}|`;
+          return `VCENGV${command.uintValue}|`;
         case 'LOADING_VALVE':
-          return `VCLDGV${command.uint_value}|`;
+          return `VCLDGV${command.uintValue}|`;
         case 'LOADING_LINE_DEPRESS_VENT_VALVE':
-          return `VCLDVV${command.uint_value}|`;
+          return `VCLDVV${command.uintValue}|`;
       }
       break;
     case 'SWITCH_STATE_COMMAND':
       return `SS${get4ByteStringFromState(command.state)}|`;
       break;
     case 'SET_EXTERNAL_VENT_AS_DEFAULT_COMMAND':
-      return `EV${command.bool_value ? '1' : '0'}|`;
+      return `EV${command.boolValue ? '1' : '0'}|`;
       break;
     case 'EMPTY_COMMAND':
       break;
     case 'RAW_COMMAND':
-      return command.string_value;
+      return command.stringValue;
       break;
   }
 
@@ -69,62 +69,60 @@ function get4ByteStringFromState(state) {
 }
 
 function isCompleteCommand(command: Command): boolean {
-  if (!command.command_type ||
-      (command.command_type == 'SWITCH_STATE_COMMAND' && command.state == null) ||
-      (command.command_type == 'VALVE_COMMAND' && (command.valve == null || command.uint_value == null)) ||
-      (command.command_type == 'SET_EXTERNAL_VENT_AS_DEFAULT_COMMAND' && command.bool_value == null) ||
-      (command.command_type == 'RAW_COMMAND' && command.string_value == null))
+  if (!command.type ||
+      (command.type == 'SWITCH_STATE_COMMAND' && command.state == null) ||
+      (command.type == 'VALVE_COMMAND' && (command.valve == null || command.uintValue == null)) ||
+      (command.type == 'SET_EXTERNAL_VENT_AS_DEFAULT_COMMAND' && command.boolValue == null) ||
+      (command.type == 'RAW_COMMAND' && command.stringValue == null))
       return false;
   return true;
 }
 
 const SendCommandModal = ({presetCommand}) => {
-  const { showSendCommandModal, setShowSendCommandModal } = useContext<boolean>(SendCommandModalContext);
-  const [currentCommand, setCurrentCommand] = useState({});
-  const [currentCommandRaw, setCurrentCommandRaw] = useState('');
-  const [commandStatus, setCommandStatus] = useState('');
+  const { sendCommandModalContext, setSendCommandModalContext } = useContext(SendCommandModalContext);
 
-  const closeModal = () => setShowSendCommandModal(false);
+  const closeModal = () => setSendCommandModalContext({showModal: false, currentCommand: {}});
 
-  const setCurrentCommandAndUpdateCommandRaw = (command) => {
-    setCurrentCommand(command);
-    if (isCompleteCommand(command)) {
-      setCurrentCommandRaw(commandToMessage(command));
+  const setCurrentCommandAndUpdateCommandRaw = (updatedContext) => {
+    if (isCompleteCommand(updatedContext.currentCommand)) {
+      setSendCommandModalContext({...updatedContext, currentCommand: {...updatedContext.currentCommand, raw: commandToMessage(updatedContext.currentCommand)}});
     } else {
-      setCurrentCommandRaw('');
+      setSendCommandModalContext({...updatedContext, currentCommand: {...updatedContext.currentCommand, raw: ''}});
     }
-    setCommandStatus('');
   }
 
   const setCurrentCommandType = (type) => {
-    let updatedCommand = { ...currentCommand, command_type: type };
-    setCurrentCommandAndUpdateCommandRaw(updatedCommand);
+    setCurrentCommandAndUpdateCommandRaw({...sendCommandModalContext, currentCommand: {...sendCommandModalContext.currentCommand, type: type}});
   };
 
   const setCurrentCommandState = (state) => {
-    let updatedCommand = { ...currentCommand, state: state };
-    setCurrentCommandAndUpdateCommandRaw(updatedCommand);
+    setCurrentCommandAndUpdateCommandRaw({...sendCommandModalContext, currentCommand: {...sendCommandModalContext.currentCommand, state: state}});
   };
 
   const setCurrentCommandValve = (valve) => {
-    let updatedCommand = { ...currentCommand, valve: valve };
-    setCurrentCommandAndUpdateCommandRaw(updatedCommand);
+    setCurrentCommandAndUpdateCommandRaw({...sendCommandModalContext, currentCommand: {...sendCommandModalContext.currentCommand, valve: valve}});
   };
 
   const setCurrentCommandUintValue = (value) => {
-    let updatedCommand = { ...currentCommand, uint_value: value };
-    setCurrentCommandAndUpdateCommandRaw(updatedCommand);
+    setCurrentCommandAndUpdateCommandRaw({...sendCommandModalContext, currentCommand: {...sendCommandModalContext.currentCommand, uintValue: value}});
   };
 
   const setCurrentCommandBoolValue = (value) => {
-    let updatedCommand = { ...currentCommand, bool_value: value };
-    setCurrentCommandAndUpdateCommandRaw(updatedCommand);
+    setCurrentCommandAndUpdateCommandRaw({...sendCommandModalContext, currentCommand: {...sendCommandModalContext.currentCommand, boolValue: value}});
+  };
+
+  const setCurrentCommandRaw = (value) => {
+    setCurrentCommandAndUpdateCommandRaw({...sendCommandModalContext, currentCommand: {...sendCommandModalContext.currentCommand, raw: value}});
+  };
+
+  const setCommandStatus = (status) => {
+    setCurrentCommandAndUpdateCommandRaw({...sendCommandModalContext, commandStatus: status});
   };
 
   const sendCommand = () => {
     const data = {
       command_type: "RAW_COMMAND",
-      string_value: currentCommandRaw
+      string_value: sendCommandModalContext.currentCommand.raw
     };
 
     setCommandStatus('Sending command...');
@@ -152,7 +150,7 @@ const SendCommandModal = ({presetCommand}) => {
 
   return (
     <>
-      {showSendCommandModal && (
+      {sendCommandModalContext.showModal && (
         <div className="modal">
           <div className="modal-content">
             <span className="close-button" onClick={closeModal}>&times;</span>
@@ -163,19 +161,19 @@ const SendCommandModal = ({presetCommand}) => {
             {COMMAND_TYPES.map((type) => (
                 <button
                   key={type}
-                  className={currentCommand.command_type === type ? 'selected' : ''}
+                  className={sendCommandModalContext.currentCommand.type === type ? 'selected' : ''}
                   onClick={() => setCurrentCommandType(type)}>
                   {type}
                 </button>
               ))}
 
-            {currentCommand.command_type == 'SWITCH_STATE_COMMAND' && (
+            {sendCommandModalContext.currentCommand.type == 'SWITCH_STATE_COMMAND' && (
               <>
               <h3>State</h3>
               {STATES.map((state) => (
                 <button
                   key={state}
-                  className={currentCommand.state === state ? 'selected' : ''}
+                  className={sendCommandModalContext.currentCommand.state === state ? 'selected' : ''}
                   onClick={() => setCurrentCommandState(state)}>
                   {state}
                 </button>
@@ -184,13 +182,13 @@ const SendCommandModal = ({presetCommand}) => {
             )
             }
 
-            {currentCommand.command_type == 'VALVE_COMMAND' && (
+            {sendCommandModalContext.currentCommand.type == 'VALVE_COMMAND' && (
               <>
               <h3>Valve</h3>
               {VALVES.map((valve) => (
                 <button
                   key={valve}
-                  className={currentCommand.valve === valve ? 'selected' : ''}
+                  className={sendCommandModalContext.currentCommand.valve === valve ? 'selected' : ''}
                   onClick={() => setCurrentCommandValve(valve)}>
                   {valve}
                 </button>
@@ -198,12 +196,12 @@ const SendCommandModal = ({presetCommand}) => {
 
               <h3>Action</h3>
               <button
-                  className={currentCommand.uint_value === 1 ? 'selected' : ''}
+                  className={sendCommandModalContext.currentCommand.uintValue === 1 ? 'selected' : ''}
                   onClick={() => setCurrentCommandUintValue(1)}>
                   Open
               </button>
               <button
-                  className={currentCommand.uint_value === 0 ? 'selected' : ''}
+                  className={sendCommandModalContext.currentCommand.uintValue === 0 ? 'selected' : ''}
                   onClick={() => setCurrentCommandUintValue(0)}>
                   Close
               </button>
@@ -211,16 +209,16 @@ const SendCommandModal = ({presetCommand}) => {
             )
             }
 
-            {currentCommand.command_type == 'SET_EXTERNAL_VENT_AS_DEFAULT_COMMAND' && (
+            {sendCommandModalContext.currentCommand.type == 'SET_EXTERNAL_VENT_AS_DEFAULT_COMMAND' && (
               <>
               <h3>External vent as default</h3>
               <button
-                  className={currentCommand.bool_value === true ? 'selected' : ''}
+                  className={sendCommandModalContext.currentCommand.boolValue === true ? 'selected' : ''}
                   onClick={() => setCurrentCommandBoolValue(true)}>
                   True
               </button>
               <button
-                  className={currentCommand.bool_value === false ? 'selected' : ''}
+                  className={sendCommandModalContext.currentCommand.boolValue === false ? 'selected' : ''}
                   onClick={() => setCurrentCommandBoolValue(false)}>
                   False
               </button>
@@ -231,13 +229,13 @@ const SendCommandModal = ({presetCommand}) => {
             <div>
               <input
                 type="text"
-                value={currentCommandRaw}
+                value={sendCommandModalContext.currentCommand.raw}
                 onChange={(event)=>setCurrentCommandRaw(event.target.value)}
                 placeholder="Enter command"
               />
               <button onClick={sendCommand}>Send Command</button>
-              <div>{commandStatus}</div>
-              {commandStatus == 'Sending command...' && (<LoadingIndicator />)}
+              <div>{sendCommandModalContext.commandStatus}</div>
+              {sendCommandModalContext.commandStatus == 'Sending command...' && (<LoadingIndicator />)}
             </div>
           </div>
         </div>
