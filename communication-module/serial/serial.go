@@ -1,14 +1,17 @@
 package serial
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
 	"kranz/communication-module/broadcast"
 	"kranz/communication-module/model"
 	"log"
+	"os"
 	"strconv"
 	"sync"
+	"time"
 
 	"go.bug.st/serial"
 )
@@ -35,7 +38,16 @@ func OpenSerialConnection(serialPort string) (serial.Port, sync.Mutex, error) {
 
 func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroadcast *broadcast.Broadcast[model.SystemStatus]) {
 	// Buffer to store incoming data
-	// buf := make([]byte, 128)
+
+	file, err := os.OpenFile("logs/" + time.Now().String() + "_LC_message_log.txt", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+			fmt.Println("Error opening file:", err)
+			return
+	}
+	defer file.Close()
+	writer := bufio.NewWriter(file)
+	writer.WriteString("LC message log for " + time.Now().String() + "\n");
+
 
 	// Read from the port in a loop
 	for {
@@ -60,6 +72,7 @@ func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroa
 			// Check for the end character, e.g., newline ('\n')
 			if b[0] == '\n' {
 				fmt.Printf("Received message from XBEE: " + string(buf))
+				writer.WriteString(time.Now().String() + " ---> " + string(buf));
 				parsed_status, err := ParseSystemStatus(string(buf[:len(buf)-1]))
 				if err != nil {
 					log.Println(err)
@@ -70,6 +83,11 @@ func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroa
 				break // End character found, exit the loop
 			}
 		}
+		err = writer.Flush()
+    if err != nil {
+        fmt.Println("Error flushing data to file:", err)
+        return
+    }
 		portMutex.Unlock()
 	}
 }
@@ -147,19 +165,19 @@ func ParseSystemStatus(message string) (model.SystemStatus, error) {
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse umbrilical connected from SystemMessage")
 	}
-	umbrilicalFinishedDisconnect, err := parseBool(message[28:28])
+	umbrilicalFinishedDisconnect, err := parseBool(message[28:29])
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse umbrilical finished disconnect from SystemMessage")
 	}
-	igniterContinuityOK, err := parseBool(message[28:29])
+	igniterContinuityOK, err := parseBool(message[29:30])
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse Igniter Continuity OK from SystemMessage")
 	}
-	externalVentAsDefault, err := parseBool(message[29:30])
+	externalVentAsDefault, err := parseBool(message[30:31])
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse external vent as default from SystemMessage")
 	}
-	windSpeedKnt, err := strconv.ParseUint(message[30:33], 10, 8)
+	windSpeedKnt, err := strconv.ParseUint(message[31:34], 10, 8)
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse wind speed from SystemMessage")
 	}
@@ -181,7 +199,7 @@ func ParseSystemStatus(message string) (model.SystemStatus, error) {
 		},
 		Launchpad: model.LaunchpadSystemStatus{
 			CurrentState:                 lcState,
-			ConnectionStatus:             "ok",
+			ConnectionStatus:             "Ok",
 			LoadLinePressureBar:          loadLinePressureBar,
 			GroundTempCelsius:            groundTempCelsius,
 			LoadingValveOpen:             loadingValveOpen,
