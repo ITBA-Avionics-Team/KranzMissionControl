@@ -17,7 +17,7 @@ const LoadingDiagram = ({ systemStatus }) => {
 
   // Style for the valve
   const containerStyle = {
-		position: 'relative',
+		position: 'absolute',
 		width: '100%',
 		height: '100%'
   };
