@@ -12,10 +12,7 @@ type FlightComputersStatus struct {
 
 type OnBoardSystemStatus struct {
 	ConnectionStatus           string                `json:"connection_status"`
-	TankPressureBAR            float32               `json:"tank_pressure_bar"`
-	TankTempCelsius            float32               `json:"tank_temp_celsius"`
 	TankDepressVentTempCelsius float32               `json:"tank_depress_vent_temp_celsius"`
-	TankDepressVentValveOpen   bool                  `json:"tank_depress_vent_valve_open"`
 	EngineValveOpen            bool                  `json:"engine_valve_open"`
 	OBECBatteryVoltageVolt     float32               `json:"obec_battery_voltage_volt"`
 	FlightComputersStatus      FlightComputersStatus `json:"flight_computers_status"`
@@ -24,17 +21,16 @@ type OnBoardSystemStatus struct {
 type LCState string
 
 const (
-	STANDBY                                LCState = "STANDBY"
-	STANDBY_PRESSURE_WARNING               LCState = "STANDBY_PRESSURE_WARNING"
-	STANDBY_PRESSURE_WARNING_EXTERNAL_VENT LCState = "STANDBY_PRESSURE_WARNING_EXTERNAL_VENT"
-	LOADING                                LCState = "LOADING"
-	PRE_FLIGHT_CHECK                       LCState = "PRE_FLIGHT_CHECK"
-	PRE_LAUNCH_WIND_CHECK                  LCState = "PRE_LAUNCH_WIND_CHECK"
-	PRE_LAUNCH_UMBRILICAL_DISCONNECT       LCState = "PRE_LAUNCH_UMBRILICAL_DISCONNECT"
-	IGNITION_IGNITERS_ON                   LCState = "IGNITION_IGNITERS_ON"
-	IGNITION_OPEN_VALVE                    LCState = "IGNITION_OPEN_VALVE"
-	IGNITION_IGNITERS_OFF                  LCState = "IGNITION_IGNITERS_OFF"
-	ABORT                                  LCState = "ABORT"
+	STANDBY                          LCState = "STANDBY"
+	STANDBY_PRESSURE_WARNING         LCState = "STANDBY_PRESSURE_WARNING"
+	LOADING                          LCState = "LOADING"
+	PRE_FLIGHT_CHECK                 LCState = "PRE_FLIGHT_CHECK"
+	PRE_LAUNCH_WIND_CHECK            LCState = "PRE_LAUNCH_WIND_CHECK"
+	PRE_LAUNCH_UMBRILICAL_DISCONNECT LCState = "PRE_LAUNCH_UMBRILICAL_DISCONNECT"
+	IGNITION_OPEN_VALVE              LCState = "IGNITION_OPEN_VALVE"
+	IGNITION_IGNITERS_ON             LCState = "IGNITION_IGNITERS_ON"
+	IGNITION_IGNITERS_OFF            LCState = "IGNITION_IGNITERS_OFF"
+	ABORT                            LCState = "ABORT"
 )
 
 func Get4ByteStringFromState(state LCState) string {
@@ -43,8 +39,6 @@ func Get4ByteStringFromState(state LCState) string {
 		return "STBY"
 	case STANDBY_PRESSURE_WARNING:
 		return "STPW"
-	case STANDBY_PRESSURE_WARNING_EXTERNAL_VENT:
-		return "STPE"
 	case LOADING:
 		return "LDNG"
 	case PRE_FLIGHT_CHECK:
@@ -53,10 +47,10 @@ func Get4ByteStringFromState(state LCState) string {
 		return "PRLW"
 	case PRE_LAUNCH_UMBRILICAL_DISCONNECT:
 		return "PRLU"
-	case IGNITION_IGNITERS_ON:
-		return "IGON"
 	case IGNITION_OPEN_VALVE:
 		return "IGVO"
+	case IGNITION_IGNITERS_ON:
+		return "IGON"
 	case IGNITION_IGNITERS_OFF:
 		return "IGOF"
 	case ABORT:
@@ -66,15 +60,16 @@ func Get4ByteStringFromState(state LCState) string {
 }
 
 type LaunchpadSystemStatus struct {
-	CurrentState                LCState `json:"current_state"`
-	ConnectionStatus            string  `json:"connection_status"`
-	LoadLinePressureBar         float32 `json:"load_line_pressure_bar"`
-	LoadingValveOpen            bool    `json:"loading_valve_open"`
-	LoadingDepressVentValveOpen bool    `json:"loading_depress_vent_valve_open"`
-	UmbrilicalConnected         bool    `json:"umbrilical_connected"`
-	IgniterContinuityOK         bool    `json:"igniter_continuity_ok"`
-	ExternalVentAsDefault       bool    `json:"external_vent_as_default"`
-	LCBatteryVoltageVolt        float32 `json:"lc_battery_voltage_volt"`
+	ConnectionStatus             string  `json:"connection_status"`
+	CurrentState                 LCState `json:"current_state"`
+	LoadLinePressureBar          float32 `json:"load_line_pressure_bar"`
+	GroundTempCelsius            float32 `json:"ground_temp_celsius"`
+	LoadingValveOpen             bool    `json:"loading_valve_open"`
+	LoadingDepressVentValveOpen  bool    `json:"loading_depress_vent_valve_open"`
+	UmbrilicalConnected          bool    `json:"umbrilical_connected"`
+	UmbrilicalFinishedDisconnect bool    `json:"umbrilical_finished_disconnect"`
+	IgniterContinuityOK          bool    `json:"igniter_continuity_ok"`
+	ExternalVentAsDefault        bool    `json:"external_vent_as_default"`
 }
 
 type WeatherData struct {
@@ -103,10 +98,8 @@ const (
 type Valve string
 
 const (
-	TANK_DEPRESS_VENT_VALVE         Valve = "TANK_DEPRESS_VENT_VALVE"
-	ENGINE_VALVE                    Valve = "ENGINE_VALVE"
-	LOADING_VALVE                   Valve = "LOADING_VALVE"
-	LOADING_LINE_DEPRESS_VENT_VALVE Valve = "LOADING_LINE_DEPRESS_VENT_VALVE"
+	ENGINE_VALVE  Valve = "ENGINE_VALVE"
+	LOADING_VALVE Valve = "LOADING_VALVE"
 )
 
 type Command struct {
@@ -122,14 +115,10 @@ func (command *Command) ToMessage() []byte {
 	switch command.CommandType {
 	case VALVE_COMMAND:
 		switch command.Valve {
-		case TANK_DEPRESS_VENT_VALVE:
-			return []byte(fmt.Sprintf("VCTDVV%c|", command.UintValue))
 		case ENGINE_VALVE:
 			return []byte(fmt.Sprintf("VCENGV%c|", command.UintValue))
 		case LOADING_VALVE:
 			return []byte(fmt.Sprintf("VCLDGV%c|", command.UintValue))
-		case LOADING_LINE_DEPRESS_VENT_VALVE:
-			return []byte(fmt.Sprintf("VCLDVV%c|", command.UintValue))
 		}
 	case SWITCH_STATE_COMMAND:
 		return []byte("SS" + Get4ByteStringFromState(command.State) + "|")
@@ -141,7 +130,7 @@ func (command *Command) ToMessage() []byte {
 	case EMPTY_COMMAND:
 		// Do nothing for EMPTY
 		return []byte{}
-	case  RAW_COMMAND:
+	case RAW_COMMAND:
 		return []byte(command.StringValue)
 	}
 	return []byte{}
