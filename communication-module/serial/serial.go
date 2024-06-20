@@ -53,50 +53,50 @@ func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroa
 
 	var buf []byte
 	// Read from the port in a loop
-		for {
-			portMutex.Lock()
-			// Read one byte
-			b := make([]byte, 1)
-			_, err := port.Read(b)
-			if err != nil {
-				if err != io.EOF {
-					log.Fatalf("port.Read: %v", err)
-				}
+	for {
+		portMutex.Lock()
+		// Read one byte
+		b := make([]byte, 1)
+		_, err := port.Read(b)
+		if err != nil {
+			if err != io.EOF {
+				log.Fatalf("port.Read: %v", err)
 			}
-			portMutex.Unlock()
-
-			// Append the byte to the buffer
-			if (b[0] != 0) {
-				buf = append(buf, b[0])
-			}
-			
-			// Check for the end character, e.g., newline ('\n')
-			if b[0] == '\n' {
-				fmt.Printf("Received message from XBEE: " + string(buf))
-				timeOfLastMessage = time.Now()
-				writer.WriteString(time.Now().String() + " ---> " + string(buf))
-				parsed_status, err := ParseSystemStatus(string(buf[:len(buf)-1]))
-				if err != nil {
-					log.Println(err)
-				}
-				fmt.Printf("Parsed message to system status: %v\n", parsed_status)
-				latestSystemStatus = parsed_status
-				systemStatusBroadcast.SendBroadcast(parsed_status)
-				buf = buf[:0]
-				err = writer.Flush()
-				if err != nil {
-					fmt.Println("Error flushing data to file:", err)
-					return
-				}
-			}
-
-			if (time.Since(timeOfLastMessage).Milliseconds() > 4000) {
-				var systemStatusWithLCConnectionError = latestSystemStatus
-				systemStatusWithLCConnectionError.Launchpad.ConnectionStatus = "Last message received " + fmt.Sprintf("%f", time.Since(timeOfLastMessage).Seconds()) + " seconds ago"
-				systemStatusBroadcast.SendBroadcast(systemStatusWithLCConnectionError)
-			}
-			
 		}
+		portMutex.Unlock()
+
+		// Append the byte to the buffer
+		if b[0] != 0 {
+			buf = append(buf, b[0])
+		}
+
+		// Check for the end character, e.g., newline ('\n')
+		if b[0] == '\n' {
+			fmt.Printf("Received message from XBEE: " + string(buf))
+			timeOfLastMessage = time.Now()
+			writer.WriteString(time.Now().String() + " ---> " + string(buf))
+			parsed_status, err := ParseSystemStatus(string(buf[:len(buf)-1]))
+			if err != nil {
+				log.Println(err)
+			}
+			fmt.Printf("Parsed message to system status: %v\n", parsed_status)
+			latestSystemStatus = parsed_status
+			systemStatusBroadcast.SendBroadcast(parsed_status)
+			buf = buf[:0]
+			err = writer.Flush()
+			if err != nil {
+				fmt.Println("Error flushing data to file:", err)
+				return
+			}
+		}
+
+		if time.Since(timeOfLastMessage).Milliseconds() > 4000 {
+			var systemStatusWithLCConnectionError = latestSystemStatus
+			systemStatusWithLCConnectionError.Launchpad.ConnectionStatus = "Last message received " + fmt.Sprintf("%f", time.Since(timeOfLastMessage).Seconds()) + " seconds ago"
+			systemStatusBroadcast.SendBroadcast(systemStatusWithLCConnectionError)
+		}
+
+	}
 }
 
 func SendCommand(port serial.Port, portMutex *sync.Mutex, command model.Command) {
@@ -142,49 +142,42 @@ func ParseSystemStatus(message string) (model.SystemStatus, error) {
 		return model.SystemStatus{}, errors.New("failed to parse loading line pressure from SystemMessage")
 	}
 
-	groundTempCelsius, err := parseF32(message[13:18])
+	groundPressureBar, err := parseF32(message[13:17])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse ground pressure from SystemMessage")
+	}
+
+	groundTempCelsius, err := parseF32(message[17:22])
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse ground temperature from SystemMessage")
 	}
 
-	obecBatteryVoltageVolt, err := parseF32(message[18:23])
+	obecBatteryVoltageVolt, err := parseF32(message[22:27])
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse OBEC battery voltage from SystemMessage")
 	}
 
-	obecConnectionOK, err := parseBool(message[23:24])
+	obecConnectionOK, err := parseBool(message[27:28])
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse OBEC Connection OK from SystemMessage")
 	}
-	engineValveOpen, err := parseBool(message[24:25])
+	engineValveOpen, err := parseBool(message[28:29])
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse engine valve open from SystemMessage")
 	}
-	loadingValveOpen, err := parseBool(message[25:26])
+	loadingValveOpen, err := parseBool(message[29:30])
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse loading valve open from SystemMessage")
 	}
-	loadingDepressVentValveOpen, err := parseBool(message[26:27])
-	if err != nil {
-		return model.SystemStatus{}, errors.New("failed to parse loading depress vent valve open from SystemMessage")
-	}
-	umbrilicalConnected, err := parseBool(message[27:28])
+	umbrilicalConnected, err := parseBool(message[30:31])
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse umbrilical connected from SystemMessage")
 	}
-	umbrilicalFinishedDisconnect, err := parseBool(message[28:29])
+	umbrilicalFinishedDisconnect, err := parseBool(message[31:32])
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse umbrilical finished disconnect from SystemMessage")
 	}
-	igniterContinuityOK, err := parseBool(message[29:30])
-	if err != nil {
-		return model.SystemStatus{}, errors.New("failed to parse Igniter Continuity OK from SystemMessage")
-	}
-	externalVentAsDefault, err := parseBool(message[30:31])
-	if err != nil {
-		return model.SystemStatus{}, errors.New("failed to parse external vent as default from SystemMessage")
-	}
-	windSpeedKnt, err := strconv.ParseUint(message[31:34], 10, 8)
+	windSpeedKnt, err := strconv.ParseUint(message[32:35], 10, 8)
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse wind speed from SystemMessage")
 	}
@@ -208,13 +201,11 @@ func ParseSystemStatus(message string) (model.SystemStatus, error) {
 			CurrentState:                 lcState,
 			ConnectionStatus:             "Ok",
 			LoadingLinePressureBar:       loadingLinePressureBar,
+			GroundPressureBar:            groundPressureBar,
 			GroundTempCelsius:            groundTempCelsius,
 			LoadingValveOpen:             loadingValveOpen,
-			LoadingDepressVentValveOpen:  loadingDepressVentValveOpen,
 			UmbrilicalConnected:          umbrilicalConnected,
 			UmbrilicalFinishedDisconnect: umbrilicalFinishedDisconnect,
-			IgniterContinuityOK:          igniterContinuityOK,
-			ExternalVentAsDefault:        externalVentAsDefault,
 		},
 		WeatherData: model.WeatherData{
 			WindSpeedKnt: uint8(windSpeedKnt),

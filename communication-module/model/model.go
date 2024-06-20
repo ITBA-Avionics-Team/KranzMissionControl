@@ -63,6 +63,7 @@ type LaunchpadSystemStatus struct {
 	ConnectionStatus             string  `json:"connection_status"`
 	CurrentState                 LCState `json:"current_state"`
 	LoadingLinePressureBar       float32 `json:"loading_line_pressure_bar"`
+	GroundPressureBar            float32 `json:"ground_pressure_bar"`
 	GroundTempCelsius            float32 `json:"ground_temp_celsius"`
 	LoadingValveOpen             bool    `json:"loading_valve_open"`
 	LoadingDepressVentValveOpen  bool    `json:"loading_depress_vent_valve_open"`
