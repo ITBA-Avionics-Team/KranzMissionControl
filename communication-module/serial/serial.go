@@ -42,14 +42,14 @@ func OpenSerialConnection(serialPort string) (serial.Port, sync.Mutex, error) {
 func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroadcast *broadcast.Broadcast[model.SystemStatus]) {
 	// Buffer to store incoming data
 
-	file, err := os.OpenFile("logs/"+time.Now().String()+"_LC_message_log.txt", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	file, err := os.OpenFile("logs/"+time.Now().String()+"_telemetry_message_log.txt", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		fmt.Println("Error opening file:", err)
 		return
 	}
 	defer file.Close()
 	writer := bufio.NewWriter(file)
-	writer.WriteString("LC message log for " + time.Now().String() + "\n")
+	writer.WriteString("Telemetry message log for " + time.Now().String() + "\n")
 
 	var buf []byte
 	// Read from the port in a loop
@@ -91,22 +91,140 @@ func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroa
 		}
 
 		if time.Since(timeOfLastMessage).Milliseconds() > 4000 {
-			var systemStatusWithLCConnectionError = latestSystemStatus
-			systemStatusWithLCConnectionError.Launchpad.ConnectionStatus = "Last message received " + fmt.Sprintf("%f", time.Since(timeOfLastMessage).Seconds()) + " seconds ago"
-			systemStatusBroadcast.SendBroadcast(systemStatusWithLCConnectionError)
+			var systemStatusWithConnectionError = latestSystemStatus
+			// Mantenemos esta línea por compatibilidad con el controlador
+			systemStatusWithConnectionError.Launchpad = map[string]interface{}{
+				"ConnectionStatus": "Last message received " + fmt.Sprintf("%f", time.Since(timeOfLastMessage).Seconds()) + " seconds ago",
+			}
+			systemStatusBroadcast.SendBroadcast(systemStatusWithConnectionError)
 		}
-
 	}
 }
 
+// Función SendCommand se mantiene comentada por si es necesaria en el futuro
+/*
 func SendCommand(port serial.Port, portMutex *sync.Mutex, command model.Command) {
 	portMutex.Lock()
 	fmt.Println("Sending command: " + string(command.ToMessage()))
 	port.Write(command.ToMessage())
 	portMutex.Unlock()
 }
+*/
 
 func ParseSystemStatus(message string) (model.SystemStatus, error) {
+	// Verificamos si estamos recibiendo un mensaje de telemetría (66 caracteres para 11 campos de 6 chars)
+	if len(message) == 66 {
+		return ParseFlightTelemetry(message)
+	}
+
+	// Si no es un mensaje de telemetría reconocible, devolvemos un error
+	return model.SystemStatus{}, errors.New("message format not recognized or message is too short")
+}
+
+func ParseFlightTelemetry(message string) (model.SystemStatus, error) {
+	// For flight telemetry, each field is exactly 6 characters
+	const fieldSize = 6
+
+	// Check if the message length is correct (11 fields * 6 chars)
+	if len(message) != 11*fieldSize {
+		return model.SystemStatus{}, errors.New(fmt.Sprintf("invalid telemetry message length: %d, expected: %d", len(message), 11*fieldSize))
+	}
+
+	// Helper function to parse float values from a 6-char field
+	parseF32 := func(fieldValue string) (float32, error) {
+		val, err := strconv.ParseFloat(fieldValue, 32)
+		if err != nil {
+			return 0, err
+		}
+		return float32(val), nil
+	}
+
+	// Extract all fields from the message
+	fields := make([]string, 11)
+	for i := 0; i < 11; i++ {
+		start := i * fieldSize
+		end := start + fieldSize
+		fields[i] = message[start:end]
+	}
+
+	// Parse field values
+	missionTime := fields[0]
+
+	packetCount, err := strconv.Atoi(fields[1])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse packet count")
+	}
+
+	status := fields[2]
+
+	altitude, err := parseF32(fields[3])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse altitude")
+	}
+
+	tilt, err := parseF32(fields[4])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse tilt")
+	}
+
+	gpsLatitude, err := parseF32(fields[5])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse GPS latitude")
+	}
+
+	gpsLongitude, err := parseF32(fields[6])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse GPS longitude")
+	}
+
+	gpsAltitude, err := parseF32(fields[7])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse GPS altitude")
+	}
+
+	acceleration, err := parseF32(fields[8])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse acceleration")
+	}
+
+	temperature, err := parseF32(fields[9])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse temperature")
+	}
+
+	batteryVoltage, err := parseF32(fields[10])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse battery voltage")
+	}
+
+	// Create a new system status with the telemetry data
+	return model.SystemStatus{
+		FlightTelemetry: model.FlightTelemetrySystemStatus{
+			MissionTime:    missionTime,
+			PacketCount:    packetCount,
+			Status:         status,
+			Altitude:       altitude,
+			Tilt:           tilt,
+			GPSLatitude:    gpsLatitude,
+			GPSLongitude:   gpsLongitude,
+			GPSAltitude:    gpsAltitude,
+			Acceleration:   acceleration,
+			Temperature:    temperature,
+			BatteryVoltage: batteryVoltage,
+		},
+		// Dejamos vacíos los demás campos que ya no se usan
+		OnBoard:     map[string]interface{}{"ConnectionStatus": "OK"},
+		Launchpad:   map[string]interface{}{"ConnectionStatus": "OK"},
+		WeatherData: map[string]interface{}{},
+	}, nil
+}
+
+/*
+Funciones específicas de LaunchPad comentadas, ya que no se utilizan para la telemetría de vuelo
+Si se necesitan en el futuro, simplemente quitar los comentarios
+
+// Original parsing function renamed for backward compatibility
+func ParseLaunchpadStatus(message string) (model.SystemStatus, error) {
 	if len(message) < 35 {
 		return model.SystemStatus{}, errors.New("message is too short")
 	}
@@ -190,6 +308,8 @@ func ParseSystemStatus(message string) (model.SystemStatus, error) {
 	}
 
 	return model.SystemStatus{
+		// Initialize an empty FlightTelemetry structure
+		FlightTelemetry: model.FlightTelemetrySystemStatus{},
 		OnBoard: model.OnBoardSystemStatus{
 			ConnectionStatus:           obecConnectionOKString,
 			TankDepressVentTempCelsius: tankDepressVentTempCelsius,
@@ -239,3 +359,4 @@ func ParseLCState(str string) (model.LCState, error) {
 		return model.STANDBY, errors.New("LCState string does not match any state: " + str)
 	}
 }
+*/

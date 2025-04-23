@@ -1,10 +1,40 @@
 package model
 
-import "fmt"
+/*
+FLIGHT TELEMETRY MODELS
+*/
+type FlightTelemetrySystemStatus struct {
+	MissionTime     string  `json:"mission_time"`
+	PacketCount     int     `json:"packet_count"`
+	Status          string  `json:"status"`
+	Altitude        float32 `json:"altitude"`
+	Tilt            float32 `json:"tilt"`
+	GPSLatitude     float32 `json:"gps_latitude"`
+	GPSLongitude    float32 `json:"gps_longitude"`
+	GPSAltitude     float32 `json:"gps_altitude"`
+	Acceleration    float32 `json:"acceleration"`
+	Temperature     float32 `json:"temperature"`
+	BatteryVoltage  float32 `json:"battery_voltage"`
+}
+
+// Estructura simplificada del sistema que solo contiene telemetría
+type SystemStatus struct {
+	FlightTelemetry FlightTelemetrySystemStatus `json:"flight_telemetry"`
+	// Mantenemos estos campos vacíos por compatibilidad con el controller existente
+	// pero no serán utilizados para la telemetría de vuelo
+	OnBoard     interface{} `json:"on_board"`
+	Launchpad   interface{} `json:"launchpad"`
+	WeatherData interface{} `json:"weather_data"`
+}
 
 /*
-SYSTEM STATUS MODELS
+Las siguientes secciones están comentadas porque son específicas del LaunchPad
+y ya no se utilizan para la telemetría de vuelo.
+Si necesitas volver a habilitarlas, simplemente quita los comentarios.
 */
+
+/*
+// SYSTEM STATUS MODELS
 type FlightComputersStatus struct {
 	AltiumOK bool `json:"altium_ok"`
 	AdaOK    bool `json:"ada_ok"`
@@ -77,15 +107,7 @@ type WeatherData struct {
 	WindSpeedKnt uint8 `json:"wind_speed_knt"`
 }
 
-type SystemStatus struct {
-	OnBoard     OnBoardSystemStatus   `json:"on_board"`
-	Launchpad   LaunchpadSystemStatus `json:"launchpad"`
-	WeatherData WeatherData           `json:"weather_data"`
-}
-
-/*
-COMMAND MODELS
-*/
+// COMMAND MODELS
 type CommandType string
 
 const (
@@ -136,3 +158,4 @@ func (command *Command) ToMessage() []byte {
 	}
 	return []byte{}
 }
+*/
