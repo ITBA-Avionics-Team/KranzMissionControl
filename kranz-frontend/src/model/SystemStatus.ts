@@ -5,6 +5,20 @@ interface FlightComputersStatus {
   ada_ok: boolean;
 }
 
+interface FlightTelemetry {
+  mission_time: string;
+  packet_count: number;
+  status: string;
+  altitude: number;
+  tilt: number;
+  gps_latitude: number;
+  gps_longitude: number;
+  gps_altitude: number;
+  acceleration: number;
+  temperature: number;
+  battery_voltage: number;
+}
+
 interface OnBoardSystemStatus {
   connection_status: string;
   tank_pressure_bar: number;
@@ -40,6 +54,7 @@ export interface SystemStatus {
   on_board: OnBoardSystemStatus;
   launchpad: LaunchpadSystemStatus;
   weather_data: WeatherData;
+  flight_telemetry: FlightTelemetry;
 }
 
 // export const DefaultSystemStatus: SystemStatus = {
@@ -101,4 +116,17 @@ export const DefaultSystemStatus = {
   weather_data: {
     wind_speed_knt: "?",
   },
+  flight_telemetry: {
+    mission_time: "?",
+    packet_count: "?",
+    status: "?",
+    altitude: "?",
+    tilt: "?",
+    gps_latitude: "?",
+    gps_longitude: "?",
+    gps_altitude: "?",
+    acceleration: "?",
+    temperature: "?",
+    battery_voltage: "?"
+  }
 }

@@ -28,16 +28,16 @@ const StatusBar = ({systemStatus}) => {
   return (
     <div style={statusBarStyle}>
       <div style={statusBarElemStyle}>
-        <div><b>LC State:</b> {systemStatus.launchpad.current_state}</div>
-        <div><b>LC Connection status:</b> {systemStatus.launchpad.connection_status}</div>
+        <div><b>Mission time:</b> {systemStatus.launchpad.current_state}</div>
+        <div><b>Packet count:</b> {systemStatus.launchpad.connection_status}</div>
       </div>
       <div style={statusBarElemStyle}>
         {/* <div><b>OBEC State:</b> {systemStatus.on_board?.current_state}</div> */}
-        <div><b>OBEC Connection status:</b> {systemStatus.on_board?.connection_status}</div>
+        <div><b>Telemetry status:</b> {systemStatus.on_board?.connection_status}</div>
       </div>
 
       <div style={statusBarElemStyle}>
-        <div><b>Default venting mode:</b> {systemStatus.launchpad?.external_vent_as_default ? "EXTERNAL" : "INTERNAL"}</div>
+        <div><b>Battery voltage:</b> {systemStatus.launchpad?.external_vent_as_default ? "EXTERNAL" : "INTERNAL"}</div>
       </div>
 
     </div>

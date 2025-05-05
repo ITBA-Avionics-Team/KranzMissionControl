@@ -1,69 +1,49 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { SystemStatusContext } from '../contexts/SystemStatusContext';
+import React from 'react';
 import { SystemStatus } from '../model/SystemStatus';
 import './SystemStatusText.css'
 
-const SystemStatusText = ({ systemStatus }) => {
+interface SystemStatusTextProps {
+  systemStatus: SystemStatus;
+}
 
+const SystemStatusText: React.FC<SystemStatusTextProps> = ({ systemStatus }) => {
   return (
     <div className="system-status-text">
       <table>
-        <tr>
-          <td colSpan="2" style={{ fontWeight: 'bold' }}>Current state:</td>
-          <td colSpan="2" style={{ textAlign: 'right' }}> {systemStatus?.launchpad?.current_state}</td>
-        </tr>
-        <tr>
-          <td colSpan="2" style={{ fontWeight: 'bold' }}>Tank depress vent temperature:</td>
-          <td colSpan="2" style={{ textAlign: 'right' }}> {systemStatus?.on_board?.tank_depress_vent_temp_celsius} °C</td>
-        </tr>
-        <tr>
-          <td colSpan="2" style={{ fontWeight: 'bold' }}>Loading line pressure:</td>
-          <td colSpan="2" style={{ textAlign: 'right' }}> {systemStatus?.launchpad?.loading_line_pressure_bar} BAR</td>
-        </tr>
-        <tr>
-          <td colSpan="2" style={{ fontWeight: 'bold' }}>Ground temperature:</td>
-          <td colSpan="2" style={{ textAlign: 'right' }}> {systemStatus?.launchpad?.ground_temp_celsius} BAR</td>
-        </tr>
-        <tr>
-          <td colSpan="2" style={{ fontWeight: 'bold' }}>OBEC battery voltage:</td>
-          <td colSpan="2" style={{ textAlign: 'right' }}> {systemStatus?.on_board?.obec_battery_voltage_volt} V</td>
-        </tr>
-        <tr>
-          <td colSpan="2" style={{ fontWeight: 'bold' }}>Connection to OBEC:</td>
-          <td colSpan="2" style={{ textAlign: 'right' }}> {systemStatus?.on_board?.connection_status}</td>
-        </tr>
-        <tr>
-          <td colSpan="2" style={{ fontWeight: 'bold' }}>Engine valve:</td>
-          <td colSpan="2" style={{ textAlign: 'right' }}> {systemStatus?.on_board?.engine_valve_open ? "Open" : "Closed"}</td>
-        </tr>
-        <tr>
-          <td colSpan="2" style={{ fontWeight: 'bold' }}>Loading Valve:</td>
-          <td colSpan="2" style={{ textAlign: 'right' }}> {systemStatus?.launchpad?.loading_valve_open ? "Open" : "Closed"}</td>
-        </tr>
-        <tr>
-          <td colSpan="2" style={{ fontWeight: 'bold' }}>Loading depress vent valve:</td>
-          <td colSpan="2" style={{ textAlign: 'right' }}> {systemStatus?.launchpad?.loading_depress_vent_valve_open ? "Open" : "Closed"}</td>
-        </tr>
-        <tr>
-          <td colSpan="2" style={{ fontWeight: 'bold' }}>Hydraulic umbrilical connected:</td>
-          <td colSpan="2" style={{ textAlign: 'right' }}> {systemStatus?.launchpad?.umbrilical_connected ? "Connected" : "Disconnected"}</td>
-        </tr>
-        <tr>
-          <td colSpan="2" style={{ fontWeight: 'bold' }}>Hydraulic umbrilical finished disconnect:</td>
-          <td colSpan="2" style={{ textAlign: 'right' }}> {systemStatus?.launchpad?.umbrilical_finished_disconnect ? "Finished" : "Still disconnecting"}</td>
-        </tr>
-        <tr>
-          <td colSpan="2" style={{ fontWeight: 'bold' }}>Igniter continuity:</td>
-          <td colSpan="2" style={{ textAlign: 'right' }}> {systemStatus?.launchpad?.igniter_continuity_ok ? "Ok" : "Error"}</td>
-        </tr>
-        <tr>
-          <td colSpan="2" style={{ fontWeight: 'bold' }}>External vent as default:</td>
-          <td colSpan="2" style={{ textAlign: 'right' }}> {systemStatus?.launchpad?.external_vent_as_default ? "True" : "False"}</td>
-        </tr>
-        <tr>
-          <td colSpan="2" style={{ fontWeight: 'bold' }}>Wind:</td>
-          <td colSpan="2" style={{ textAlign: 'right' }}> {systemStatus?.weather_data?.wind_speed_knt}kt</td>
-        </tr>
+        <tbody>
+          <tr>
+            <td colSpan={2} style={{ fontWeight: 'bold' }}>Flight Status:</td>
+            <td colSpan={2} style={{ textAlign: 'right' }}>{systemStatus?.flight_telemetry?.status || '?'}</td>
+          </tr>
+          <tr>
+            <td colSpan={2} style={{ fontWeight: 'bold' }}>Altitude:</td>
+            <td colSpan={2} style={{ textAlign: 'right' }}>{systemStatus?.flight_telemetry?.altitude || '?'} m</td>
+          </tr>
+          <tr>
+            <td colSpan={2} style={{ fontWeight: 'bold' }}>Tilt:</td>
+            <td colSpan={2} style={{ textAlign: 'right' }}>{systemStatus?.flight_telemetry?.tilt || '?'}°</td>
+          </tr>
+          <tr>
+            <td colSpan={2} style={{ fontWeight: 'bold' }}>GPS Latitude:</td>
+            <td colSpan={2} style={{ textAlign: 'right' }}>{systemStatus?.flight_telemetry?.gps_latitude || '?'}</td>
+          </tr>
+          <tr>
+            <td colSpan={2} style={{ fontWeight: 'bold' }}>GPS Longitude:</td>
+            <td colSpan={2} style={{ textAlign: 'right' }}>{systemStatus?.flight_telemetry?.gps_longitude || '?'}</td>
+          </tr>
+          <tr>
+            <td colSpan={2} style={{ fontWeight: 'bold' }}>GPS Altitude:</td>
+            <td colSpan={2} style={{ textAlign: 'right' }}>{systemStatus?.flight_telemetry?.gps_altitude || '?'} m</td>
+          </tr>
+          <tr>
+            <td colSpan={2} style={{ fontWeight: 'bold' }}>Acceleration:</td>
+            <td colSpan={2} style={{ textAlign: 'right' }}>{systemStatus?.flight_telemetry?.acceleration || '?'} m/s²</td>
+          </tr>
+          <tr>
+            <td colSpan={2} style={{ fontWeight: 'bold' }}>Temperature:</td>
+            <td colSpan={2} style={{ textAlign: 'right' }}>{systemStatus?.flight_telemetry?.temperature || '?'} °C</td>
+          </tr>
+        </tbody>
       </table>
     </div>
   );

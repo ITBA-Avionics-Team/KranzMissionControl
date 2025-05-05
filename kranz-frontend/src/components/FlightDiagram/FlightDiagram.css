@@ -1,0 +1,60 @@
+.flight-diagram {
+  display: flex;
+  flex-direction: column;
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  padding: 10px;
+  margin: 10px;
+  width: 100%;
+  max-width: 800px;
+}
+
+.flight-diagram h3 {
+  color: #fff;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.map-container {
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #444;
+  margin-bottom: 10px;
+}
+
+.map-container iframe {
+  display: block;
+  width: 100%;
+  border: none;
+}
+
+.coordinate-display {
+  margin-top: 10px;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+}
+
+.coordinate-display p {
+  margin: 5px 0;
+  font-family: monospace;
+}
+
+.map-note {
+  margin-top: 5px;
+  border-top: 1px solid #444;
+  padding-top: 5px;
+  text-align: center;
+}
+
+.map-note p {
+  color: #888;
+  font-size: 12px;
+  margin: 0;
+}
+
+/* Override leaflet container styles to properly fit within our UI */
+.flight-diagram .leaflet-container {
+  border-radius: 4px;
+  border: 1px solid #444;
+} 
