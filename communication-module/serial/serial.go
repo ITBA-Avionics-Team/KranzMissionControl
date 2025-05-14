@@ -22,7 +22,7 @@ var latestSystemStatus = model.SystemStatus{}
 func OpenSerialConnection(serialPort string) (serial.Port, sync.Mutex, error) {
 	// Configuration for the serial port
 	mode := &serial.Mode{
-		BaudRate: 9600,
+		BaudRate: 115200,
 		Parity:   serial.NoParity,
 		DataBits: 8,
 		StopBits: serial.OneStopBit,
@@ -41,92 +41,14 @@ func OpenSerialConnection(serialPort string) (serial.Port, sync.Mutex, error) {
 
 func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroadcast *broadcast.Broadcast[model.SystemStatus]) {
 	// Buffer to store incoming data
-
-	// Crear directorio logs si no existe
-	if err := os.MkdirAll("logs", 0755); err != nil {
-		fmt.Println("Error creating logs directory:", err)
-		return
-	}
-
-	// Usar formato de fecha compatible con Windows (sin caracteres prohibidos)
-	timestamp := time.Now().Format("2006-01-02_15-04-05")
-	filename := fmt.Sprintf("logs/%s_telemetry_message_log.txt", timestamp)
-
-	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	file, err := os.OpenFile("logs/"+time.Now().String()+"_LC_message_log.txt", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		fmt.Println("Error opening file:", err)
 		return
 	}
 	defer file.Close()
 	writer := bufio.NewWriter(file)
-	writer.WriteString("Telemetry message log for " + time.Now().String() + "\n")
-
-	var buf []byte
-	// Read from the port in a loop
-	for {
-		portMutex.Lock()
-		// Read one byte
-		b := make([]byte, 1)
-		_, err := port.Read(b)
-		if err != nil {
-			if err != io.EOF {
-				log.Fatalf("port.Read: %v", err)
-			}
-		}
-		portMutex.Unlock()
-
-		// Append the byte to the buffer
-		buf = append(buf, b[0])
-
-		// Check if we have a complete message (66 bytes for flight telemetry)
-		if len(buf) == 66 {
-			fmt.Printf("Received message from XBEE: " + string(buf))
-			timeOfLastMessage = time.Now()
-			writer.WriteString(time.Now().String() + " ---> " + string(buf) + "\n")
-			parsed_status, err := ParseSystemStatus(string(buf))
-			if err != nil {
-				log.Println(err)
-			}
-			fmt.Printf("Parsed message to system status: %v\n", parsed_status)
-			latestSystemStatus = parsed_status
-			systemStatusBroadcast.SendBroadcast(parsed_status)
-			buf = buf[:0] // Reset buffer for next message
-			err = writer.Flush()
-			if err != nil {
-				fmt.Println("Error flushing data to file:", err)
-				return
-			}
-		}
-
-		// Opcional: Si el buffer crece demasiado (por algún error), resetéalo
-		if len(buf) > 100 {
-			fmt.Printf("Buffer overflow detected. Resetting buffer. Lost data: %s\n", string(buf))
-			buf = buf[:0]
-		}
-
-		if time.Since(timeOfLastMessage).Milliseconds() > 4000 {
-			var systemStatusWithConnectionError = latestSystemStatus
-			// Mantenemos esta línea por compatibilidad con el controlador
-			systemStatusWithConnectionError.Launchpad = map[string]interface{}{
-				"ConnectionStatus": "Last message received " + fmt.Sprintf("%f", time.Since(timeOfLastMessage).Seconds()) + " seconds ago",
-			}
-			systemStatusBroadcast.SendBroadcast(systemStatusWithConnectionError)
-		}
-	}
-}
-
-/*
-func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroadcast *broadcast.Broadcast[model.SystemStatus]) {
-	// Buffer to store incoming data
-
-	file, err := os.OpenFile("logs/"+time.Now().String()+"_telemetry_message_log.txt", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
-	if err != nil {
-		fmt.Println("Error opening file:", err)
-		return
-	}
-	defer file.Close()
-	writer := bufio.NewWriter(file)
-	writer.WriteString("Telemetry message log for " + time.Now().String() + "\n")
+	writer.WriteString("LC message log for " + time.Now().String() + "\n")
 
 	var buf []byte
 	// Read from the port in a loop
@@ -150,6 +72,7 @@ func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroa
 		// Check for the end character, e.g., newline ('\n')
 		if b[0] == '\n' {
 			fmt.Printf("Received message from XBEE: " + string(buf))
+			fmt.Printf("Length: %d", len(string(buf)))
 			timeOfLastMessage = time.Now()
 			writer.WriteString(time.Now().String() + " ---> " + string(buf))
 			parsed_status, err := ParseSystemStatus(string(buf[:len(buf)-1]))
@@ -177,17 +100,14 @@ func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroa
 		}
 	}
 }
-*/
 
 // Función SendCommand se mantiene comentada por si es necesaria en el futuro
-/*
 func SendCommand(port serial.Port, portMutex *sync.Mutex, command model.Command) {
 	portMutex.Lock()
 	fmt.Println("Sending command: " + string(command.ToMessage()))
 	port.Write(command.ToMessage())
 	portMutex.Unlock()
 }
-*/
 
 func ParseSystemStatus(message string) (model.SystemStatus, error) {
 	// Verificamos si estamos recibiendo un mensaje de telemetría (66 caracteres para 11 campos de 6 chars)
@@ -204,7 +124,7 @@ func ParseFlightTelemetry(message string) (model.SystemStatus, error) {
 	const fieldSize = 6
 
 	// Check if the message length is correct (11 fields * 6 chars)
-	if len(message) != 11*fieldSize {
+	if len(message) != 66 {
 		return model.SystemStatus{}, errors.New(fmt.Sprintf("invalid telemetry message length: %d, expected: %d", len(message), 11*fieldSize))
 	}
 
@@ -236,6 +156,7 @@ func ParseFlightTelemetry(message string) (model.SystemStatus, error) {
 	status := fields[2]
 
 	altitude, err := parseF32(fields[3])
+	fmt.Println(fields[3])
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse altitude")
 	}

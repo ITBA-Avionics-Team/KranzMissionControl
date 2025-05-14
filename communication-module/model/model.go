@@ -1,5 +1,7 @@
 package model
 
+import "fmt"
+
 /*
 FLIGHT TELEMETRY MODELS
 */
@@ -33,7 +35,7 @@ y ya no se utilizan para la telemetría de vuelo.
 Si necesitas volver a habilitarlas, simplemente quita los comentarios.
 */
 
-/*
+
 // SYSTEM STATUS MODELS
 type FlightComputersStatus struct {
 	AltiumOK bool `json:"altium_ok"`
@@ -158,4 +160,4 @@ func (command *Command) ToMessage() []byte {
 	}
 	return []byte{}
 }
-*/
+

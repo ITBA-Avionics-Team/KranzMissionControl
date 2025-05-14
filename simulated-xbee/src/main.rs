@@ -1,9 +1,9 @@
 use std::{time::{Duration, self}, thread, env, process::exit};
 
 
-const SYSTEM_STATUS_MESSAGE: &[u8] = b"STBY038.20050038.109.4510011010002|\n";
+const SYSTEM_STATUS_MESSAGE: &[u8] = b"000120000010NORMAL001275-34.64-58.36072500009800012500003500037500\n";
                                       
-const SYSTEM_STATUS_MESSAGE_ABORT: &[u8] = b"STBY038.20050038.109.4510011010002|\n";
+const SYSTEM_STATUS_MESSAGE_ABORT: &[u8] = b"000120000010ABORT1001275-34.64-58.36072500009800012500003500037500\n";
 
 fn main() {
     let write_port_name: &str;
