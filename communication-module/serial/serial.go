@@ -22,7 +22,7 @@ var latestSystemStatus = model.SystemStatus{}
 func OpenSerialConnection(serialPort string) (serial.Port, sync.Mutex, error) {
 	// Configuration for the serial port
 	mode := &serial.Mode{
-		BaudRate: 115200,
+		BaudRate: 9600,
 		Parity:   serial.NoParity,
 		DataBits: 8,
 		StopBits: serial.OneStopBit,
@@ -39,6 +39,83 @@ func OpenSerialConnection(serialPort string) (serial.Port, sync.Mutex, error) {
 	return port, mutex, nil
 }
 
+func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroadcast *broadcast.Broadcast[model.SystemStatus]) {
+	// Buffer to store incoming data
+
+	// Crear directorio logs si no existe
+	if err := os.MkdirAll("logs", 0755); err != nil {
+		fmt.Println("Error creating logs directory:", err)
+		return
+	}
+
+	// Usar formato de fecha compatible con Windows (sin caracteres prohibidos)
+	timestamp := time.Now().Format("2006-01-02_15-04-05")
+	filename := fmt.Sprintf("logs/%s_telemetry_message_log.txt", timestamp)
+
+	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		fmt.Println("Error opening file:", err)
+		return
+	}
+	defer file.Close()
+	writer := bufio.NewWriter(file)
+	writer.WriteString("Telemetry message log for " + time.Now().String() + "\n")
+
+	var buf []byte
+	// Read from the port in a loop
+	for {
+		portMutex.Lock()
+		// Read one byte
+		b := make([]byte, 1)
+		_, err := port.Read(b)
+		if err != nil {
+			if err != io.EOF {
+				log.Fatalf("port.Read: %v", err)
+			}
+		}
+		portMutex.Unlock()
+
+		// Append the byte to the buffer
+		buf = append(buf, b[0])
+
+		// Check if we have a complete message (66 bytes for flight telemetry)
+		if len(buf) == 66 {
+			fmt.Printf("Received message from XBEE: " + string(buf))
+			timeOfLastMessage = time.Now()
+			writer.WriteString(time.Now().String() + " ---> " + string(buf) + "\n")
+			parsed_status, err := ParseSystemStatus(string(buf))
+			if err != nil {
+				log.Println(err)
+			}
+			fmt.Printf("Parsed message to system status: %v\n", parsed_status)
+			latestSystemStatus = parsed_status
+			systemStatusBroadcast.SendBroadcast(parsed_status)
+			buf = buf[:0] // Reset buffer for next message
+			err = writer.Flush()
+			if err != nil {
+				fmt.Println("Error flushing data to file:", err)
+				return
+			}
+		}
+
+		// Opcional: Si el buffer crece demasiado (por algún error), resetéalo
+		if len(buf) > 100 {
+			fmt.Printf("Buffer overflow detected. Resetting buffer. Lost data: %s\n", string(buf))
+			buf = buf[:0]
+		}
+
+		if time.Since(timeOfLastMessage).Milliseconds() > 4000 {
+			var systemStatusWithConnectionError = latestSystemStatus
+			// Mantenemos esta línea por compatibilidad con el controlador
+			systemStatusWithConnectionError.Launchpad = map[string]interface{}{
+				"ConnectionStatus": "Last message received " + fmt.Sprintf("%f", time.Since(timeOfLastMessage).Seconds()) + " seconds ago",
+			}
+			systemStatusBroadcast.SendBroadcast(systemStatusWithConnectionError)
+		}
+	}
+}
+
+/*
 func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroadcast *broadcast.Broadcast[model.SystemStatus]) {
 	// Buffer to store incoming data
 
@@ -100,6 +177,7 @@ func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroa
 		}
 	}
 }
+*/
 
 // Función SendCommand se mantiene comentada por si es necesaria en el futuro
 /*
