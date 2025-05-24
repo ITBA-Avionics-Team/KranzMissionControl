@@ -9,14 +9,17 @@ interface FlightTelemetry {
   mission_time: string;
   packet_count: number;
   status: string;
-  altitude: number;
-  tilt: number;
-  gps_latitude: number;
-  gps_longitude: number;
-  gps_altitude: number;
-  acceleration: number;
-  temperature: number;
-  battery_voltage: number;
+  battery_level: number;
+  imu_y_vel: number;
+  imu_roll: number;
+  imu_pitch: number;
+  gnss_time: string;
+  gnss_latitude: number;
+  gnss_longitude: number;
+  gnss_altitude: number;
+  bme_pressure: number;
+  bme_altitude: number;
+  bme_temperature: number;
 }
 
 interface OnBoardSystemStatus {
@@ -120,13 +123,16 @@ export const DefaultSystemStatus = {
     mission_time: "?",
     packet_count: "?",
     status: "?",
-    altitude: "?",
-    tilt: "?",
-    gps_latitude: "?",
-    gps_longitude: "?",
-    gps_altitude: "?",
-    acceleration: "?",
-    temperature: "?",
-    battery_voltage: "?"
+    battery_level: "?",
+    imu_y_vel: "?",
+    imu_roll: "?",
+    imu_pitch: "?",
+    gnss_time: "?",
+    gnss_latitude: "?",
+    gnss_longitude: "?",
+    gnss_altitude: "?",
+    bme_pressure: "?",
+    bme_altitude: "?",
+    bme_temperature: "?"
   }
 }

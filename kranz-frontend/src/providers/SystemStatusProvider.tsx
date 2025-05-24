@@ -24,7 +24,7 @@ export const SystemStatusProvider = ({ children }) => {
     };
 
     return () => {
-      ws.close();
+      // ws.close();
     };
   }, []);
 
