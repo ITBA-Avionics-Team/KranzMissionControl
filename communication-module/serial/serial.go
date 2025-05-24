@@ -41,14 +41,19 @@ func OpenSerialConnection(serialPort string) (serial.Port, sync.Mutex, error) {
 
 func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroadcast *broadcast.Broadcast[model.SystemStatus]) {
 	// Buffer to store incoming data
-	file, err := os.OpenFile("logs/"+time.Now().String()+"_LC_message_log.txt", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+
+	//Este caso es para MacOS
+	//file, err := os.OpenFile("logs/"+time.Now().String()+"_telemetry_message_log.txt", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+
+	//Este es para Windows +time.Now().String()+
+	file, err := os.OpenFile("C:\\KranzMisssionControl\\kranz\\communication-module\\_telemetry_message_log.txt", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+
 	if err != nil {
 		fmt.Println("Error opening file:", err)
-		return
 	}
 	defer file.Close()
 	writer := bufio.NewWriter(file)
-	writer.WriteString("LC message log for " + time.Now().String() + "\n")
+	writer.WriteString("Telemetry message log for " + time.Now().String() + "\n")
 
 	var buf []byte
 	// Read from the port in a loop
@@ -72,7 +77,6 @@ func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroa
 		// Check for the end character, e.g., newline ('\n')
 		if b[0] == '\n' {
 			fmt.Printf("Received message from XBEE: " + string(buf))
-			fmt.Printf("Length: %d", len(string(buf)))
 			timeOfLastMessage = time.Now()
 			writer.WriteString(time.Now().String() + " ---> " + string(buf))
 			parsed_status, err := ParseSystemStatus(string(buf[:len(buf)-1]))
@@ -90,6 +94,8 @@ func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroa
 			}
 		}
 
+		/* Esto desconecta si pasaron más de 4 segundos sin mensajes
+
 		if time.Since(timeOfLastMessage).Milliseconds() > 4000 {
 			var systemStatusWithConnectionError = latestSystemStatus
 			// Mantenemos esta línea por compatibilidad con el controlador
@@ -98,10 +104,12 @@ func ListenForMessages(port serial.Port, portMutex *sync.Mutex, systemStatusBroa
 			}
 			systemStatusBroadcast.SendBroadcast(systemStatusWithConnectionError)
 		}
+		*/
 	}
 }
 
 // Función SendCommand se mantiene comentada por si es necesaria en el futuro
+
 func SendCommand(port serial.Port, portMutex *sync.Mutex, command model.Command) {
 	portMutex.Lock()
 	fmt.Println("Sending command: " + string(command.ToMessage()))
@@ -110,8 +118,8 @@ func SendCommand(port serial.Port, portMutex *sync.Mutex, command model.Command)
 }
 
 func ParseSystemStatus(message string) (model.SystemStatus, error) {
-	// Verificamos si estamos recibiendo un mensaje de telemetría (66 caracteres para 11 campos de 6 chars)
-	if len(message) == 66 {
+	// Verificamos si estamos recibiendo un mensaje de telemetría (84 caracteres para 14 campos de 6 chars)
+	if len(message) == 84 {
 		return ParseFlightTelemetry(message)
 	}
 
@@ -123,9 +131,9 @@ func ParseFlightTelemetry(message string) (model.SystemStatus, error) {
 	// For flight telemetry, each field is exactly 6 characters
 	const fieldSize = 6
 
-	// Check if the message length is correct (11 fields * 6 chars)
-	if len(message) != 66 {
-		return model.SystemStatus{}, errors.New(fmt.Sprintf("invalid telemetry message length: %d, expected: %d", len(message), 11*fieldSize))
+	// Check if the message length is correct (14 fields * 6 chars)
+	if len(message) != 14*fieldSize {
+		return model.SystemStatus{}, errors.New(fmt.Sprintf("invalid telemetry message length: %d, expected: %d", len(message), 14*fieldSize))
 	}
 
 	// Helper function to parse float values from a 6-char field
@@ -138,62 +146,87 @@ func ParseFlightTelemetry(message string) (model.SystemStatus, error) {
 	}
 
 	// Extract all fields from the message
-	fields := make([]string, 11)
-	for i := 0; i < 11; i++ {
+	fields := make([]string, 14)
+	for i := 0; i < 14; i++ {
 		start := i * fieldSize
 		end := start + fieldSize
 		fields[i] = message[start:end]
 	}
 
-	// Parse field values
+	// Parse field values in the new order
+	// 0: MISSION_TIME
 	missionTime := fields[0]
 
+	// 1: PACKET_COUNT
 	packetCount, err := strconv.Atoi(fields[1])
 	if err != nil {
 		return model.SystemStatus{}, errors.New("failed to parse packet count")
 	}
 
+	// 2: STATUS
 	status := fields[2]
 
-	altitude, err := parseF32(fields[3])
-	fmt.Println(fields[3])
+	// 3: BATTERY_LEVEL
+	batteryLevel, err := parseF32(fields[3])
 	if err != nil {
-		return model.SystemStatus{}, errors.New("failed to parse altitude")
+		return model.SystemStatus{}, errors.New("failed to parse battery level")
 	}
 
-	tilt, err := parseF32(fields[4])
+	// 4: IMU_Y_VEL
+	imuYVel, err := parseF32(fields[4])
 	if err != nil {
-		return model.SystemStatus{}, errors.New("failed to parse tilt")
+		return model.SystemStatus{}, errors.New("failed to parse IMU Y velocity")
 	}
 
-	gpsLatitude, err := parseF32(fields[5])
+	// 5: IMU_ROLL
+	imuRoll, err := parseF32(fields[5])
 	if err != nil {
-		return model.SystemStatus{}, errors.New("failed to parse GPS latitude")
+		return model.SystemStatus{}, errors.New("failed to parse IMU roll")
 	}
 
-	gpsLongitude, err := parseF32(fields[6])
+	// 6: IMU_PITCH
+	imuPitch, err := parseF32(fields[6])
 	if err != nil {
-		return model.SystemStatus{}, errors.New("failed to parse GPS longitude")
+		return model.SystemStatus{}, errors.New("failed to parse IMU pitch")
 	}
 
-	gpsAltitude, err := parseF32(fields[7])
+	// 7: GNSS_TIME
+	gnssTime := fields[7]
+
+	// 8: GNSS_LATITUDE
+	gnssLatitude, err := parseF32(fields[8])
 	if err != nil {
-		return model.SystemStatus{}, errors.New("failed to parse GPS altitude")
+		return model.SystemStatus{}, errors.New("failed to parse GNSS latitude")
 	}
 
-	acceleration, err := parseF32(fields[8])
+	// 9: GNSS_LONGITUDE
+	gnssLongitude, err := parseF32(fields[9])
 	if err != nil {
-		return model.SystemStatus{}, errors.New("failed to parse acceleration")
+		return model.SystemStatus{}, errors.New("failed to parse GNSS longitude")
 	}
 
-	temperature, err := parseF32(fields[9])
+	// 10: GNSS_ALTITUDE
+	gnssAltitude, err := parseF32(fields[10])
 	if err != nil {
-		return model.SystemStatus{}, errors.New("failed to parse temperature")
+		return model.SystemStatus{}, errors.New("failed to parse GNSS altitude")
 	}
 
-	batteryVoltage, err := parseF32(fields[10])
+	// 11: BME_PRESSURE
+	bmePressure, err := parseF32(fields[11])
 	if err != nil {
-		return model.SystemStatus{}, errors.New("failed to parse battery voltage")
+		return model.SystemStatus{}, errors.New("failed to parse BME pressure")
+	}
+
+	// 12: BME_ALTITUDE
+	bmeAltitude, err := parseF32(fields[12])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse BME altitude")
+	}
+
+	// 13: BME_TEMPERATURE
+	bmeTemperature, err := parseF32(fields[13])
+	if err != nil {
+		return model.SystemStatus{}, errors.New("failed to parse BME temperature")
 	}
 
 	// Create a new system status with the telemetry data
@@ -202,14 +235,17 @@ func ParseFlightTelemetry(message string) (model.SystemStatus, error) {
 			MissionTime:    missionTime,
 			PacketCount:    packetCount,
 			Status:         status,
-			Altitude:       altitude,
-			Tilt:           tilt,
-			GPSLatitude:    gpsLatitude,
-			GPSLongitude:   gpsLongitude,
-			GPSAltitude:    gpsAltitude,
-			Acceleration:   acceleration,
-			Temperature:    temperature,
-			BatteryVoltage: batteryVoltage,
+			BatteryLevel:   batteryLevel,
+			IMUYVel:        imuYVel,
+			IMURoll:        imuRoll,
+			IMUPitch:       imuPitch,
+			GNSSTime:       gnssTime,
+			GNSSLatitude:   gnssLatitude,
+			GNSSLongitude:  gnssLongitude,
+			GNSSAltitude:   gnssAltitude,
+			BMEPressure:    bmePressure,
+			BMEAltitude:    bmeAltitude,
+			BMETemperature: bmeTemperature,
 		},
 		// Dejamos vacíos los demás campos que ya no se usan
 		OnBoard:     map[string]interface{}{"ConnectionStatus": "OK"},

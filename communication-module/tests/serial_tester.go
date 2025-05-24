@@ -15,7 +15,7 @@ func main() {
 	fmt.Println("=== INICIANDO LECTURA DE TELEMETRÍA DESDE XBEE ===")
 
 	// Definir el puerto serial (COM10 en Windows)
-	serialPort := "COM10"
+	serialPort := "COM11"
 	fmt.Printf("Intentando conectar al puerto: %s\n", serialPort)
 
 	// Abrir conexión serial
@@ -46,15 +46,18 @@ func main() {
 				fmt.Printf("- Tiempo de misión: %s\n", systemStatus.FlightTelemetry.MissionTime)
 				fmt.Printf("- Número de paquete: %d\n", systemStatus.FlightTelemetry.PacketCount)
 				fmt.Printf("- Estado: %s\n", systemStatus.FlightTelemetry.Status)
-				fmt.Printf("- Altitud: %.2f\n", systemStatus.FlightTelemetry.Altitude)
-				fmt.Printf("- Inclinación: %.2f°\n", systemStatus.FlightTelemetry.Tilt)
-				fmt.Printf("- GPS (Lat, Long, Alt): %.6f, %.6f, %.2f\n",
-					systemStatus.FlightTelemetry.GPSLatitude,
-					systemStatus.FlightTelemetry.GPSLongitude,
-					systemStatus.FlightTelemetry.GPSAltitude)
-				fmt.Printf("- Aceleración: %.2f\n", systemStatus.FlightTelemetry.Acceleration)
-				fmt.Printf("- Temperatura: %.2f°C\n", systemStatus.FlightTelemetry.Temperature)
-				fmt.Printf("- Voltaje de batería: %.2fV\n", systemStatus.FlightTelemetry.BatteryVoltage)
+				fmt.Printf("- Nivel de batería: %.2f%%\n", systemStatus.FlightTelemetry.BatteryLevel)
+				fmt.Printf("- IMU Y Velocidad: %.2f m/s\n", systemStatus.FlightTelemetry.IMUYVel)
+				fmt.Printf("- IMU Roll: %.2f°\n", systemStatus.FlightTelemetry.IMURoll)
+				fmt.Printf("- IMU Pitch: %.2f°\n", systemStatus.FlightTelemetry.IMUPitch)
+				fmt.Printf("- Tiempo GNSS: %s\n", systemStatus.FlightTelemetry.GNSSTime)
+				fmt.Printf("- GNSS (Lat, Long, Alt): %.6f, %.6f, %.2f m\n",
+					systemStatus.FlightTelemetry.GNSSLatitude,
+					systemStatus.FlightTelemetry.GNSSLongitude,
+					systemStatus.FlightTelemetry.GNSSAltitude)
+				fmt.Printf("- Presión BME: %.2f hPa\n", systemStatus.FlightTelemetry.BMEPressure)
+				fmt.Printf("- Altitud BME: %.2f m\n", systemStatus.FlightTelemetry.BMEAltitude)
+				fmt.Printf("- Temperatura BME: %.2f°C\n", systemStatus.FlightTelemetry.BMETemperature)
 				fmt.Println("===========================")
 			}
 		}
@@ -76,12 +79,15 @@ func main() {
 	fmt.Println("\nCerrando conexión...")
 }
 
-// Función de prueba con mensaje hardcodeado (se mantiene por si la necesitas)
+// Función de prueba con mensaje hardcodeado
 func testFlightTelemetry() {
-	// Mensaje de telemetría hardcodeado (11 campos de 6 caracteres)
-	testMessage := "000120000010NORMAL001275000450004258072500009800012500003500037500"
+	// Mensaje de telemetría hardcodeado (14 campos de 6 caracteres = 84 caracteres)
+	// Formato: MissionTime,PacketCount,Status,BatteryLevel,IMU_Y_Vel,IMU_Roll,IMU_Pitch,
+	//          GNSS_Time,GNSS_Lat,GNSS_Long,GNSS_Alt,BME_Press,BME_Alt,BME_Temp
+	testMessage := "001234000456ACTIVE0085.50002.75-015.20+008.4512:34:-34.567-058.891234.51013.2001275+023.45"
 
 	fmt.Println("Usando mensaje de prueba:", testMessage)
+	fmt.Printf("Longitud del mensaje: %d caracteres (esperado: 84)\n", len(testMessage))
 
 	// Parsear el mensaje hardcodeado
 	status, err := serial.ParseSystemStatus(testMessage)
@@ -95,18 +101,22 @@ func testFlightTelemetry() {
 	fmt.Printf("- Tiempo de misión: %s\n", status.FlightTelemetry.MissionTime)
 	fmt.Printf("- Número de paquete: %d\n", status.FlightTelemetry.PacketCount)
 	fmt.Printf("- Estado: %s\n", status.FlightTelemetry.Status)
-	fmt.Printf("- Altitud: %.2f\n", status.FlightTelemetry.Altitude)
-	fmt.Printf("- Inclinación: %.2f°\n", status.FlightTelemetry.Tilt)
-	fmt.Printf("- GPS (Lat, Long, Alt): %.6f, %.6f, %.2f\n",
-		status.FlightTelemetry.GPSLatitude,
-		status.FlightTelemetry.GPSLongitude,
-		status.FlightTelemetry.GPSAltitude)
-	fmt.Printf("- Aceleración: %.2f\n", status.FlightTelemetry.Acceleration)
-	fmt.Printf("- Temperatura: %.2f°C\n", status.FlightTelemetry.Temperature)
-	fmt.Printf("- Voltaje de batería: %.2fV\n", status.FlightTelemetry.BatteryVoltage)
+	fmt.Printf("- Nivel de batería: %.2f%%\n", status.FlightTelemetry.BatteryLevel)
+	fmt.Printf("- IMU Y Velocidad: %.2f m/s\n", status.FlightTelemetry.IMUYVel)
+	fmt.Printf("- IMU Roll: %.2f°\n", status.FlightTelemetry.IMURoll)
+	fmt.Printf("- IMU Pitch: %.2f°\n", status.FlightTelemetry.IMUPitch)
+	fmt.Printf("- Tiempo GNSS: %s\n", status.FlightTelemetry.GNSSTime)
+	fmt.Printf("- GNSS (Lat, Long, Alt): %.6f, %.6f, %.2f m\n",
+		status.FlightTelemetry.GNSSLatitude,
+		status.FlightTelemetry.GNSSLongitude,
+		status.FlightTelemetry.GNSSAltitude)
+	fmt.Printf("- Presión BME: %.2f hPa\n", status.FlightTelemetry.BMEPressure)
+	fmt.Printf("- Altitud BME: %.2f m\n", status.FlightTelemetry.BMEAltitude)
+	fmt.Printf("- Temperatura BME: %.2f°C\n", status.FlightTelemetry.BMETemperature)
 }
 
 /*
+// Función principal alternativa para ejecutar solo la prueba hardcodeada
 func main() {
 	fmt.Println("=== INICIANDO PRUEBA DE TELEMETRÍA DE VUELO ===")
 
@@ -120,35 +130,5 @@ func main() {
 	var _ = model.FlightTelemetrySystemStatus{}
 
 	fmt.Println("=== PRUEBA FINALIZADA ===")
-}
-
-func testFlightTelemetry() {
-	// Mensaje de telemetría hardcodeado (11 campos de 6 caracteres)
-	// Formato: Tiempo,Paquete,Status,Alt,Tilt,LatGPS,LongGPS,AltGPS,Accel,Temp,Voltaje
-	testMessage := "000120000010NORMAL001275000450004258072500009800012500003500037500"
-
-	fmt.Println("Usando mensaje de prueba:", testMessage)
-
-	// Parsear el mensaje hardcodeado
-	status, err := serial.ParseSystemStatus(testMessage)
-	if err != nil {
-		fmt.Printf("Error parseando telemetría: %v\n", err)
-		return
-	}
-
-	// Imprimir los resultados del parseo
-	fmt.Printf("\nResultado del parseo de telemetría:\n")
-	fmt.Printf("- Tiempo de misión: %s\n", status.FlightTelemetry.MissionTime)
-	fmt.Printf("- Número de paquete: %d\n", status.FlightTelemetry.PacketCount)
-	fmt.Printf("- Estado: %s\n", status.FlightTelemetry.Status)
-	fmt.Printf("- Altitud: %.2f\n", status.FlightTelemetry.Altitude)
-	fmt.Printf("- Inclinación: %.2f°\n", status.FlightTelemetry.Tilt)
-	fmt.Printf("- GPS (Lat, Long, Alt): %.6f, %.6f, %.2f\n",
-		status.FlightTelemetry.GPSLatitude,
-		status.FlightTelemetry.GPSLongitude,
-		status.FlightTelemetry.GPSAltitude)
-	fmt.Printf("- Aceleración: %.2f\n", status.FlightTelemetry.Acceleration)
-	fmt.Printf("- Temperatura: %.2f°C\n", status.FlightTelemetry.Temperature)
-	fmt.Printf("- Voltaje de batería: %.2fV\n", status.FlightTelemetry.BatteryVoltage)
 }
 */
